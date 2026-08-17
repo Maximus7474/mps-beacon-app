@@ -1,0 +1,25 @@
+$bg-primary-light: #f5f5f5;
+$bg-highlight-light: rgb(220, 220, 220);
+$text-primary-light: #000000;
+$text-secondary-light: #8e8e93;
+
+$bg-primary-dark: #000000;
+$bg-highlight-dark: rgb(20, 20, 20);
+$text-primary-dark: #f2f2f7;
+$text-secondary-dark: #6f6f6f;
+
+:root {
+  --background-primary: #{$bg-primary-light};
+  --background-highlight: #{$bg-highlight-light};
+  --text-primary: #{$text-primary-light};
+  --text-secondary: #{$text-secondary-light};
+  --secondary-shadow: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='dark'] {
+  --background-primary: #{$bg-primary-dark};
+  --background-highlight: #{$bg-highlight-dark};
+  --text-primary: #{$text-primary-dark};
+  --text-secondary: #{$text-secondary-dark};
+  --secondary-shadow: rgba(255, 255, 255, 0.1);
+}

@@ -1,0 +1,42 @@
+{
+	"name": "mps-lb-alerter",
+	"author": "Maximus7474",
+	"version": "0.0.1",
+	"license": "",
+	"description": "",
+	"type": "module",
+	"scripts": {
+		"web:dev": "cd web && vite dev",
+		"build": "bun scripts/build.js",
+		"watch": "bun scripts/build.js --watch",
+		"format": "bun biome format --write",
+		"lint": "bun biome lint --write"
+	},
+	"keywords": [
+		"fivem"
+	],
+	"devDependencies": {
+		"@citizenfx/client": "latest",
+		"@citizenfx/server": "latest",
+		"@communityox/fx-utils": "^0.0.4",
+		"@jgoz/esbuild-plugin-typecheck": "^4.0.3",
+		"@types/node": "^22.15.21",
+		"@types/react": "^19.1.5",
+		"@types/react-dom": "^19.1.5",
+		"@types/react-router-dom": "^5.3.3",
+		"@vitejs/plugin-react": "^4.5.0",
+		"esbuild": "^0.25.4",
+		"sass": "^1.102.0",
+		"typescript": "^5.8.3",
+		"vite": "^6.3.5"
+	},
+	"dependencies": {
+		"@biomejs/biome": "^1.9.4",
+		"@communityox/oxmysql": "^1.4.3",
+		"@nativewrappers/fivem": "latest",
+		"lucide-react": "^0.511.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0",
+		"react-router-dom": "^7.18.1"
+	}
+}
