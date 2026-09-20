@@ -25,7 +25,8 @@ export type Company = {
   status: CompanyStatus;
   lastActiveMinutes: number;
   description: string;
-  address: string;
+  address?: string;
+  coords?: { x: number; y: number };
   phone: `${number}` | null;
   posts: Post[];
 };
