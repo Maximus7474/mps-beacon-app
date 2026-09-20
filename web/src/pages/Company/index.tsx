@@ -2,7 +2,7 @@ import { formatRelativeTime, getCompanyVanityPhoneNumber } from '~/utils/utils';
 import type { Announcement, Company } from '@common/types';
 import { BrandMark } from '~/components/BrandMark';
 import styles from './index.module.scss';
-import { CaretLeftIcon, ClockIcon, MapPinIcon, PhoneIcon, TimerIcon } from '@phosphor-icons/react/dist/ssr';
+import { CaretLeftIcon, MapPinIcon, PhoneIcon, InfoIcon } from '@phosphor-icons/react/dist/ssr';
 
 interface CompanyPageProps {
   company: Company;
@@ -59,7 +59,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
                   })}
             </div>
             <div className={styles.metaLine}>
-              <ClockIcon size={14} weight='fill' />
+              <InfoIcon size={28} weight='fill' />
               {company.description}
             </div>
           </div>
