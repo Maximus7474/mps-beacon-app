@@ -8,7 +8,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "paths": {
-      "~/*": ["../../*"],
+      "~/*": ["./src/*"],
       "@common/*": ["../src/common/*"]
     },
     "types": ["@types/node", "./nui.d.ts"],

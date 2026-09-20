@@ -1,41 +1,110 @@
-import { type ReactNode, useEffect, useRef } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import Frame from './components/dev/Frame';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import ThemeToggler from './components/dev/Theming';
 import PageLayout from './components/PageLayout';
-import { Navigate } from 'react-router-dom';
-import { Home, NotHome } from './pages';
+import { AnnouncementFeedPage, CompanyPage, HomePage, ManagePage } from './pages';
+import { BeaconProvider } from './contexts/BeaconProvider';
+import { useBeacon } from './hooks/useBeacon';
 
 import './App.scss';
 
 const devMode = !window?.['invokeNative'];
 
 const App = () => {
-  const appDiv = useRef(null);
-
   useEffect(() => {
     if (devMode) {
       document.body.style.visibility = 'visible';
       document.body.setAttribute('devmode', 'true');
-      return;
     }
   }, []);
 
   return (
-    <AppProvider>
-      <div className='app' ref={appDiv}>
+    <BeaconProvider>
+      <AppProvider>
+        <AppShell />
+      </AppProvider>
+      {devMode && <ThemeToggler />}
+    </BeaconProvider>
+  );
+};
+
+const AppShell = () => {
+  const { loading } = useBeacon();
+
+  return (
+    <div className='app'>
+      {loading ? (
+        <div className='app-loading'>Loading…</div>
+      ) : (
         <Routes>
           <Route path='/' element={<PageLayout />}>
-            <Route index element={<Home />} />
-            <Route path='nothome' element={<NotHome />} />
+            <Route index element={<HomeRoute />} />
+            <Route path='company' element={<CompanyRoute />} />
+            <Route path='feed' element={<AnnouncementFeedRoute />} />
+            <Route path='manage' element={<ManageRoute />} />
 
             {/* Redirect if accessing an unknown or unauthorised page */}
             <Route path='*' element={<Navigate to='/' replace />} />
           </Route>
         </Routes>
-      </div>
-      {devMode && <ThemeToggler />}
-    </AppProvider>
+      )}
+    </div>
+  );
+};
+
+const HomeRoute = () => {
+  const navigate = useNavigate();
+  const { companies } = useBeacon();
+
+  return <HomePage companies={companies} onSelectCompany={(company) => navigate(`/company?companyId=${company.id}`)} />;
+};
+
+const CompanyRoute = () => {
+  const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const { companies, announcements } = useBeacon();
+
+  const companyId = params.get('companyId');
+  const company = companies.find((c) => c.id === companyId);
+
+  if (!company) return <Navigate to='/' replace />;
+
+  return <CompanyPage company={company} announcements={announcements} onBack={() => navigate('/')} />;
+};
+
+const AnnouncementFeedRoute = () => {
+  const { announcements } = useBeacon();
+  return <AnnouncementFeedPage announcements={announcements} />;
+};
+
+const ManageRoute = () => {
+  const {
+    companies,
+    announcements,
+    employeeMode,
+    employeeCompanyId,
+    addAnnouncement,
+    deleteAnnouncement,
+    addPost,
+    deletePost,
+    updateStatus,
+  } = useBeacon();
+
+  if (!employeeMode) return <Navigate to='/' replace />;
+
+  const company = companies.find((c) => c.id === employeeCompanyId) ?? null;
+
+  return (
+    <ManagePage
+      company={company}
+      announcements={announcements}
+      onAddAnnouncement={addAnnouncement}
+      onDeleteAnnouncement={deleteAnnouncement}
+      onAddPost={addPost}
+      onDeletePost={deletePost}
+      onUpdateStatus={updateStatus}
+    />
   );
 };
 

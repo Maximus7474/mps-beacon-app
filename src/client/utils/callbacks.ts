@@ -3,6 +3,8 @@ import type { CallbackResponse } from '@common/types';
 type CallbackHandler = (response: any) => void;
 const pendingCallbacks = new Map<string, CallbackHandler>();
 
+const resourceName = GetCurrentResourceName();
+
 const generateUUID = (): string => {
   return `${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 };
@@ -16,11 +18,11 @@ export const triggerServerCallback = <T = any>(name: string, data?: any): Promis
       else reject(res.error);
     });
 
-    emitNet('myResource:server:triggerCallback', name, id, data);
+    emitNet(`${resourceName}:server:triggerCallback`, name, id, data);
   });
 };
 
-onNet('myResource:client:callbackResponse', (requestId: string, response: CallbackResponse) => {
+onNet(`${resourceName}:client:callbackResponse`, (requestId: string, response: CallbackResponse) => {
   const cb = pendingCallbacks.get(requestId);
 
   if (cb) {

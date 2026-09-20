@@ -1,5 +1,5 @@
 {
-	"name": "mps-lb-alerter",
+	"name": "mps-beacon-app",
 	"author": "Maximus7474",
 	"version": "0.0.1",
 	"license": "",
@@ -34,6 +34,7 @@
 		"@biomejs/biome": "^1.9.4",
 		"@communityox/oxmysql": "^1.4.3",
 		"@nativewrappers/fivem": "latest",
+		"@phosphor-icons/react": "^2.1.10",
 		"lucide-react": "^0.511.0",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",

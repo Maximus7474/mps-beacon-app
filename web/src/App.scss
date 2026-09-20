@@ -1,4 +1,4 @@
-@import 'colors';
+@use 'colors' as *;
 
 * {
   margin: 0;
@@ -7,7 +7,7 @@
 }
 
 .app {
-  height: 100vh;
+  height: 100%;
   width: 100%;
   display: flex;
   align-items: center;
@@ -16,15 +16,26 @@
   background-color: var(--background-primary);
   font-family: 'Poppins', sans-serif;
 
+  &-loading {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
   &-wrapper {
     width: 100%;
     height: 100%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3rem;
   }
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .header {

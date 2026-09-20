@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Wrench } from 'lucide-react';
+import { useBeacon } from '~/hooks/useBeacon';
 
 import './Theming.scss';
 
 const ThemeToggler: React.FC = () => {
   const [theme, setTheme] = useState('light');
+  const { employeeMode, setEmployeeMode } = useBeacon();
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -27,6 +29,19 @@ const ThemeToggler: React.FC = () => {
           Switch to
           <br />
           {theme !== 'light' ? 'light' : 'dark'} theme
+        </span>
+      </button>
+
+      <button
+        className={employeeMode ? 'active' : undefined}
+        onClick={() => setEmployeeMode(!employeeMode)}
+        aria-pressed={employeeMode}
+      >
+        <Wrench />
+        <span className='tooltip'>
+          Employee mode
+          <br />
+          {employeeMode ? 'enabled' : 'disabled'}
         </span>
       </button>
     </div>

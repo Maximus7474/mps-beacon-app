@@ -1,0 +1,215 @@
+@use '../../colors' as *;
+
+.page {
+  margin-top: 1rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+// Header
+.header {
+  padding: 2rem $sp-4 0;
+  background: var(--background-primary);
+  flex-shrink: 0;
+}
+
+.titleRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: $sp-4;
+}
+
+.title {
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.titleSub {
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+
+// Search
+.searchWrap {
+  position: relative;
+  margin-bottom: $sp-4;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 15px;
+  pointer-events: none;
+  color: var(--text-secondary);
+}
+
+.searchInput {
+  width: 100%;
+  background: var(--fill);
+  border-radius: $r-md;
+  padding: 9px 12px 9px 34px;
+  font-size: 17px;
+  color: var(--text-primary);
+  transition: background $duration $ease-out;
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
+
+  &:focus {
+    background: var(--fill-strong);
+  }
+}
+
+// Scroll content
+.list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 $sp-4 $sp-4;
+}
+
+.sectionHeader {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: $sp-3 0 $sp-2;
+}
+
+// Company card
+.card {
+  background: var(--background-secondary);
+  border-radius: $r-lg;
+  margin-bottom: 10px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform $duration $ease-out, box-shadow $duration $ease-out;
+  -webkit-user-select: none;
+  user-select: none;
+
+  &:active {
+    transform: scale(0.975);
+    box-shadow: var(--secondary-shadow);
+  }
+}
+
+.cardInner {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+  padding: $sp-3 $sp-4;
+}
+
+.logo {
+  width: 52px;
+  height: 52px;
+  border-radius: $r-md;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  flex-shrink: 0;
+  box-shadow: var(--secondary-shadow);
+}
+
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+  margin-bottom: 2px;
+}
+
+.name {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.category {
+  font-size: 13px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: $r-pill;
+
+  &::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    opacity: 0.8;
+  }
+
+  &.open {
+    color: $status-open-text;
+    background: $status-open-bg;
+  }
+
+  &.closed {
+    color: $status-closed-text;
+    background: $status-closed-bg;
+  }
+
+  &.busy {
+    color: $status-busy-text;
+    background: $status-busy-bg;
+  }
+}
+
+.lastActive {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.chevron {
+  color: var(--text-tertiary);
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.empty {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 15px;
+  padding: $sp-10 0;
+}

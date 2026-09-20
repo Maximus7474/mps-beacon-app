@@ -1,3 +1,5 @@
+@use '../../colors' as *;
+
 // Dev mode root styles (when dev mode is active on <body>)
 body[devmode='true'] {
   background-color: #ffffff;
@@ -33,6 +35,11 @@ body[devmode='true'] {
     display: flex;
     align-items: center;
     justify-content: center;
+
+    &.active {
+      background-color: $employee-bg;
+      color: $employee-text;
+    }
 
     &:hover {
       filter: brightness(0.9);

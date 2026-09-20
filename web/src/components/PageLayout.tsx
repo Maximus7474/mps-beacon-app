@@ -5,7 +5,7 @@ import Footer from './Footer';
 const PageLayout: React.FC = () => {
   return (
     <div className='app-wrapper'>
-      <main>
+      <main className='app-content'>
         <Outlet />
       </main>
       <Footer />

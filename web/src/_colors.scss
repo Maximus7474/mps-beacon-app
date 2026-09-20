@@ -1,25 +1,163 @@
+// iOS System Colors
+$blue:   #007AFF;
+$green:  #34C759;
+$red:    #FF3B30;
+$orange: #FF9500;
+$yellow: #FFCC00;
+$purple: #AF52DE;
+$teal:   #5AC8FA;
+
+// Backgrounds
+$bg-primary:   #F2F2F7;
+$bg-secondary: #FFFFFF;
+$bg-tertiary:  #F2F2F7;
+
+// Labels
+$label:           #000000;
+$label-secondary: rgba(60, 60, 67, 0.60);
+$label-tertiary:  rgba(60, 60, 67, 0.30);
+$label-quaternary:rgba(60, 60, 67, 0.18);
+
+// Fill / Separator
+$fill:            rgba(120, 120, 128, 0.20);
+$fill-secondary:  rgba(120, 120, 128, 0.16);
+$separator:       rgba(60, 60, 67, 0.29);
+$separator-opaque:#C6C6C8;
+
+// System Grays
+$gray-1: #8E8E93;
+$gray-2: #AEAEB2;
+$gray-3: #C7C7CC;
+$gray-4: #D1D1D6;
+$gray-5: #E5E5EA;
+$gray-6: #F2F2F7;
+
+// Typography
+$font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif;
+$font-rounded: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Display", system-ui, sans-serif;
+$font-mono: "SF Mono", SFMono-Regular, ui-monospace, monospace;
+
+// Radius
+$r-sm: 8px;
+$r-md: 12px;
+$r-lg: 16px;
+$r-xl: 20px;
+$r-pill: 100px;
+
+// Shadows
+$shadow-card: 0 1px 0 rgba(0,0,0,0.05), 0 2px 8px rgba(0,0,0,0.06);
+$shadow-elevated: 0 4px 20px rgba(0,0,0,0.10), 0 1px 4px rgba(0,0,0,0.06);
+
+// Spacing scale (4px base)
+$sp-1: 4px;
+$sp-2: 8px;
+$sp-3: 12px;
+$sp-4: 16px;
+$sp-5: 20px;
+$sp-6: 24px;
+$sp-8: 32px;
+$sp-10: 40px;
+$sp-12: 48px;
+
+// Transitions
+$ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+$ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$duration: 200ms;
+
+// ---------------------------------------------------------------------------
+// Theme tokens
+// All raw colour values for the app live in this file. Components reference the
+// CSS custom properties below (or the semantic Sass tokens) — never raw hex.
+// ---------------------------------------------------------------------------
+
+// Light theme
 $bg-primary-light: #f5f5f5;
+$bg-secondary-light: #ffffff;
 $bg-highlight-light: rgb(220, 220, 220);
+$navbar-light: rgba(249, 249, 249, 0.94);
+$fill-light: rgba(118, 118, 128, 0.12);
+$fill-strong-light: rgba(118, 118, 128, 0.18);
+
 $text-primary-light: #000000;
 $text-secondary-light: #8e8e93;
+$text-tertiary-light: rgba(60, 60, 67, 0.3);
 
+$separator-light: rgba(60, 60, 67, 0.29);
+$separator-opaque-light: #c6c6c8;
+
+// Dark theme
 $bg-primary-dark: #000000;
+$bg-secondary-dark: #1c1c1e;
 $bg-highlight-dark: rgb(20, 20, 20);
+$navbar-dark: rgba(0, 0, 0, 0.94);
+$fill-dark: rgba(118, 118, 128, 0.24);
+$fill-strong-dark: rgba(118, 118, 128, 0.32);
+
 $text-primary-dark: #f2f2f7;
 $text-secondary-dark: #6f6f6f;
+$text-tertiary-dark: rgba(235, 235, 245, 0.3);
+
+$separator-dark: rgba(84, 84, 88, 0.6);
+$separator-opaque-dark: #38383a;
+
+// Status & pill accents (readable on both light and dark)
+$status-open-text: #27ae60;
+$status-open-bg: rgba(52, 199, 89, 0.12);
+$status-busy-text: #e07800;
+$status-busy-bg: rgba(255, 149, 0, 0.12);
+$status-closed-text: #ff3b30;
+$status-closed-bg: rgba(255, 59, 48, 0.1);
+
+$pill-status-text: #d47800;
+$pill-status-bg: rgba(255, 149, 0, 0.12);
+$pill-offer-text: #25a35a;
+$pill-offer-bg: rgba(52, 199, 89, 0.12);
+$pill-general-text: #007aff;
+$pill-general-bg: rgba(0, 122, 255, 0.1);
+$pill-menu-text: #5856d6;
+$pill-menu-bg: rgba(88, 86, 214, 0.1);
+$pill-post-text: #007aff;
+$pill-post-bg: rgba(0, 122, 255, 0.1);
+
+$employee-text: #8b44b0;
+$employee-bg: rgba(175, 82, 222, 0.12);
+
+$toast-background: rgba(30, 30, 30, 0.88);
 
 :root {
   --background-primary: #{$bg-primary-light};
+  --background-secondary: #{$bg-secondary-light};
   --background-highlight: #{$bg-highlight-light};
+  --navbar-background: #{$navbar-light};
+  --fill: #{$fill-light};
+  --fill-strong: #{$fill-strong-light};
+
   --text-primary: #{$text-primary-light};
   --text-secondary: #{$text-secondary-light};
+  --text-tertiary: #{$text-tertiary-light};
+
+  --separator: #{$separator-light};
+  --separator-opaque: #{$separator-opaque-light};
+
   --secondary-shadow: rgba(0, 0, 0, 0.15);
+  --card-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 [data-theme='dark'] {
   --background-primary: #{$bg-primary-dark};
+  --background-secondary: #{$bg-secondary-dark};
   --background-highlight: #{$bg-highlight-dark};
+  --navbar-background: #{$navbar-dark};
+  --fill: #{$fill-dark};
+  --fill-strong: #{$fill-strong-dark};
+
   --text-primary: #{$text-primary-dark};
   --text-secondary: #{$text-secondary-dark};
+  --text-tertiary: #{$text-tertiary-dark};
+
+  --separator: #{$separator-dark};
+  --separator-opaque: #{$separator-opaque-dark};
+
   --secondary-shadow: rgba(255, 255, 255, 0.1);
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 8px rgba(0, 0, 0, 0.4);
 }
