@@ -1,4 +1,4 @@
-import { formatRelativeTime } from '~/utils/utils';
+import { formatRelativeTime, getCompanyVanityPhoneNumber } from '~/utils/utils';
 import type { Announcement, Company } from '@common/types';
 import { BrandMark } from '~/components/BrandMark';
 import styles from './index.module.scss';
@@ -52,7 +52,11 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
             </div>
             <div className={styles.metaLine}>
               <PhoneIcon size={14} weight='fill' />
-              {company.phone}
+              {company.phone
+                ? globalThis.formatPhoneNumber(company.phone)
+                : getCompanyVanityPhoneNumber({
+                    name: company.name,
+                  })}
             </div>
             <div className={styles.metaLine}>
               <ClockIcon size={14} weight='fill' />

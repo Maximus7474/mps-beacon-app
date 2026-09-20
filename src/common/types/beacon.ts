@@ -26,7 +26,7 @@ export type Company = {
   lastActiveMinutes: number;
   description: string;
   address: string;
-  phone: string;
+  phone: `${number}` | null;
   posts: Post[];
 };
 

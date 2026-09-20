@@ -14,7 +14,8 @@ export const SEED_COMPANIES: Company[] = [
     description:
       'Specialty coffee roasters serving single-origin pour-overs, espresso drinks, and house-baked goods since 2018.',
     address: '42 Maple Street, Downtown',
-    phone: '+1 (555) 012-3456',
+    // phone: '5550123456',
+    phone: null,
     posts: [
       {
         id: 'p1',
@@ -56,7 +57,7 @@ export const SEED_COMPANIES: Company[] = [
     description:
       'Authentic Japanese cuisine in an intimate setting. Our chefs trained in Tokyo bring seasonal omakase and izakaya classics.',
     address: '7 Blossom Lane, Midtown',
-    phone: '+1 (555) 234-5678',
+    phone: '5552345678',
     posts: [
       {
         id: 'p4',
@@ -98,7 +99,7 @@ export const SEED_COMPANIES: Company[] = [
     description:
       'Your neighborhood grocer stocking local produce, artisan cheeses, craft charcuterie, and everyday essentials.',
     address: '180 Oak Avenue, Westside',
-    phone: '+1 (555) 345-6789',
+    phone: '5553456789',
     posts: [
       {
         id: 'p7',
@@ -131,7 +132,7 @@ export const SEED_COMPANIES: Company[] = [
     description:
       'Family-run Cantonese kitchen serving traditional dim sum, roasted meats, and wok-fired classics for 30 years.',
     address: '33 Jade Street, Chinatown',
-    phone: '+1 (555) 456-7890',
+    phone: '5554567890',
     posts: [
       {
         id: 'p9',
@@ -164,7 +165,7 @@ export const SEED_COMPANIES: Company[] = [
     description:
       'Studio florist specializing in seasonal arrangements, wedding florals, and same-day delivery across the city.',
     address: '21 Petal Row, Arts District',
-    phone: '+1 (555) 567-8901',
+    phone: '5555678901',
     posts: [
       {
         id: 'p11',
@@ -198,7 +199,7 @@ export const SEED_COMPANIES: Company[] = [
     description:
       'Classic barbershop with modern technique. Hot towel shaves, tapers, fades, and beard sculpting by experienced barbers.',
     address: '9 Union Square, Central',
-    phone: '+1 (555) 678-9012',
+    phone: '5556789012',
     posts: [
       {
         id: 'p13',
