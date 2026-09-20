@@ -16,7 +16,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
     .sort((a, b) => a.minutesAgo - b.minutesAgo)[0];
 
   const statusLabel =
-    company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy — Wait Expected' : 'Closed';
+    company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy' : 'Closed';
 
   return (
     <div className={styles.page}>
