@@ -1,4 +1,3 @@
-import { useState, useCallback } from 'react';
 import type {
   AddAnnouncementPayload,
   AddPostPayload,
@@ -8,8 +7,10 @@ import type {
   CompanyStatus,
   PostType,
 } from '@common/types';
-import { BrandMark } from '~/components/BrandMark';
 import { TrashIcon } from '@phosphor-icons/react/dist/ssr';
+import { useCallback, useState } from 'react';
+import { BrandMark } from '~/components/BrandMark';
+import { Dropdown, DropdownOption } from '~/components/Dropdown';
 import styles from './index.module.scss';
 
 interface ManagePageProps {
@@ -22,22 +23,11 @@ interface ManagePageProps {
   onUpdateStatus: (companyId: string, status: CompanyStatus) => Promise<boolean>;
 }
 
-const announcementTypes: { value: AnnouncementType; label: string }[] = [
-  { value: 'status', label: 'Open / Close Update' },
-  { value: 'offer', label: 'Discount / Offer' },
-  { value: 'general', label: 'General Announcement' },
-];
-
-const postTypes: { value: PostType; label: string }[] = [
-  { value: 'post', label: 'Post / Update' },
-  { value: 'menu', label: 'Menu Item' },
-];
-
-const statusOptions: { value: Company['status']; label: string; colour: string }[] = [
-  { value: 'open', label: 'Open', colour: 'green' },
-  { value: 'busy', label: 'Busy', colour: 'orange' },
-  { value: 'closed', label: 'Closed', colour: 'red' },
-];
+const statusLabels: Record<CompanyStatus, string> = {
+  open: 'Open',
+  busy: 'Busy',
+  closed: 'Closed',
+};
 
 export function ManagePage({
   company,
@@ -137,24 +127,27 @@ export function ManagePage({
             {/* Status */}
             <div className={styles.sectionTitle}>Business Status</div>
             <div className={styles.formCard}>
-              {statusOptions.map((opt) => (
-                <div key={opt.value} className={styles.formRow}>
-                  <span className={styles.formLabel}>
-                    <span className={styles.statusBadge} style={{ backgroundColor: opt.colour }} aria-hidden='true' />
-                    {opt.label}
-                  </span>
-                  <input
-                    type='radio'
-                    className={styles.radio}
-                    name='status'
-                    checked={company.status === opt.value}
-                    onChange={async () => {
-                      const ok = await onUpdateStatus(company.id, opt.value);
-                      showToast(ok ? `Status set to ${opt.label}` : 'Failed to update status');
-                    }}
-                  />
-                </div>
-              ))}
+              <div className={styles.formRow}>
+                <span className={styles.formLabel}>Status</span>
+                <Dropdown
+                  value={company.status}
+                  ariaLabel='Business status'
+                  onChange={async (status) => {
+                    const ok = await onUpdateStatus(company.id, status);
+                    showToast(ok ? `Status set to ${statusLabels[status]}` : 'Failed to update status');
+                  }}
+                >
+                  <DropdownOption value='open' tone='positive'>
+                    Open
+                  </DropdownOption>
+                  <DropdownOption value='busy' tone='warning'>
+                    Busy
+                  </DropdownOption>
+                  <DropdownOption value='closed' tone='negative'>
+                    Closed
+                  </DropdownOption>
+                </Dropdown>
+              </div>
             </div>
 
             {/* New announcement */}
@@ -162,17 +155,11 @@ export function ManagePage({
             <div className={styles.formCard}>
               <div className={styles.formRow}>
                 <span className={styles.formLabel}>Type</span>
-                <select
-                  className={styles.formSelect}
-                  value={annType}
-                  onChange={(e) => setAnnType(e.target.value as AnnouncementType)}
-                >
-                  {announcementTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown value={annType} ariaLabel='Announcement type' onChange={setAnnType}>
+                  <DropdownOption value='status'>Open / Close Update</DropdownOption>
+                  <DropdownOption value='offer'>Discount / Offer</DropdownOption>
+                  <DropdownOption value='general'>General Announcement</DropdownOption>
+                </Dropdown>
               </div>
               <div className={styles.formRow}>
                 <span className={styles.formLabel}>Title</span>
@@ -196,6 +183,7 @@ export function ManagePage({
               </div>
             </div>
             <button
+              type='button'
               className={styles.submitBtn}
               onClick={submitAnnouncement}
               disabled={!annTitle.trim() || !annContent.trim()}
@@ -219,6 +207,7 @@ export function ManagePage({
                       <div className={styles.itemContent}>{a.content}</div>
                     </div>
                     <button
+                      type='button'
                       className={styles.deleteBtn}
                       onClick={async () => {
                         const ok = await onDeleteAnnouncement(a.id);
@@ -238,17 +227,10 @@ export function ManagePage({
             <div className={styles.formCard}>
               <div className={styles.formRow}>
                 <span className={styles.formLabel}>Type</span>
-                <select
-                  className={styles.formSelect}
-                  value={postType}
-                  onChange={(e) => setPostType(e.target.value as PostType)}
-                >
-                  {postTypes.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown value={postType} ariaLabel='Post type' onChange={setPostType}>
+                  <DropdownOption value='post'>Post / Update</DropdownOption>
+                  <DropdownOption value='menu'>Menu Item</DropdownOption>
+                </Dropdown>
               </div>
               <div className={styles.formRow}>
                 <span className={styles.formLabel}>Title</span>
@@ -284,6 +266,7 @@ export function ManagePage({
               )}
             </div>
             <button
+              type='button'
               className={styles.submitBtn}
               onClick={submitPost}
               disabled={!postTitle.trim() || !postContent.trim()}
@@ -307,6 +290,7 @@ export function ManagePage({
                       <div className={styles.itemContent}>{p.content}</div>
                     </div>
                     <button
+                      type='button'
                       className={styles.deleteBtn}
                       onClick={async () => {
                         const ok = await onDeletePost(company.id, p.id);

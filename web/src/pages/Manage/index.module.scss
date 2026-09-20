@@ -101,13 +101,16 @@
   margin: $sp-5 0 $sp-3;
 }
 
-// Form card
 .formCard {
   background: var(--background-secondary);
   border-radius: $r-lg;
   box-shadow: var(--card-shadow);
-  overflow: hidden;
   margin-bottom: $sp-3;
+}
+
+.formCard > .formRow:last-child {
+  border-bottom-left-radius: $r-lg;
+  border-bottom-right-radius: $r-lg;
 }
 
 .formRow {
@@ -134,8 +137,7 @@
   font-weight: 500;
 }
 
-.formInput,
-.formSelect {
+.formInput {
   flex: 1;
   min-width: 0;
   height: 40px;
@@ -155,16 +157,6 @@
     border-color: $blue;
     box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18);
   }
-}
-
-.formSelect {
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
-  padding-right: 32px;
-  background-image: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='12'%20height='8'%20viewBox='0%200%2012%208'%3E%3Cpath%20d='M1%201l5%205%205-5'%20stroke='%238E8E93'%20stroke-width='2'%20fill='none'%20stroke-linecap='round'%20stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
 }
 
 .formTextarea {
@@ -188,31 +180,6 @@
   &:focus {
     border-color: $blue;
     box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.18);
-  }
-}
-
-// Custom radio (business status picker)
-.radio {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 22px;
-  height: 22px;
-  margin-left: auto;
-  padding: 0;
-  flex-shrink: 0;
-  border-radius: 50%;
-  border: 2px solid var(--separator-opaque);
-  background-color: transparent;
-  cursor: pointer;
-  transition: border-color $duration $ease-out, background-color $duration $ease-out, box-shadow $duration $ease-out;
-
-  &:checked {
-    border-color: $blue;
-    background-image: radial-gradient(circle at center, $blue 0 5px, transparent 5.5px);
-  }
-
-  &:focus-visible {
-    box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
   }
 }
 
@@ -363,15 +330,6 @@
   pointer-events: none;
   animation: toastIn 200ms $ease-spring forwards, toastOut 300ms $ease-out 1700ms forwards;
   z-index: 200;
-}
-
-.statusBadge {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 12px;
-  flex-shrink: 0;
 }
 
 @keyframes toastIn {
