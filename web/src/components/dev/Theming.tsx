@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Moon, Sun, Wrench } from 'lucide-react';
+import { MoonIcon, SunIcon, WrenchIcon } from '@phosphor-icons/react/dist/ssr';
 import { useBeacon } from '~/hooks/useBeacon';
 
 import './Theming.scss';
@@ -24,7 +24,7 @@ const ThemeToggler: React.FC = () => {
   return (
     <div className='theme-menu'>
       <button onClick={toggleTheme}>
-        {theme === 'light' ? <Sun /> : <Moon />}
+        {theme === 'light' ? <SunIcon size='1.5em' /> : <MoonIcon size='1.5em' />}
         <span className='tooltip'>
           Switch to
           <br />
@@ -37,7 +37,7 @@ const ThemeToggler: React.FC = () => {
         onClick={() => setEmployeeMode(!employeeMode)}
         aria-pressed={employeeMode}
       >
-        <Wrench />
+        <WrenchIcon size='1.5em' />
         <span className='tooltip'>
           Employee mode
           <br />
