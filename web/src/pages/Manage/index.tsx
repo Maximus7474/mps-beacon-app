@@ -33,10 +33,10 @@ const postTypes: { value: PostType; label: string }[] = [
   { value: 'menu', label: 'Menu Item' },
 ];
 
-const statusOptions: { value: Company['status']; label: string; emoji: string }[] = [
-  { value: 'open', label: 'Open', emoji: '🟢' },
-  { value: 'busy', label: 'Busy', emoji: '🟠' },
-  { value: 'closed', label: 'Closed', emoji: '🔴' },
+const statusOptions: { value: Company['status']; label: string; colour: string }[] = [
+  { value: 'open', label: 'Open', colour: 'green' },
+  { value: 'busy', label: 'Busy', colour: 'orange' },
+  { value: 'closed', label: 'Closed', colour: 'red' },
 ];
 
 export function ManagePage({
@@ -140,7 +140,8 @@ export function ManagePage({
               {statusOptions.map((opt) => (
                 <div key={opt.value} className={styles.formRow}>
                   <span className={styles.formLabel}>
-                    {opt.emoji} {opt.label}
+                    <span className={styles.statusBadge} style={{ backgroundColor: opt.colour }} aria-hidden='true' />
+                    {opt.label}
                   </span>
                   <input
                     type='radio'
