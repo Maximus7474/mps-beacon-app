@@ -70,7 +70,10 @@ const validateAddAnnouncement = (
   if (!isRecord(data) || typeof data.companyId !== 'string') return deny('Invalid request');
   if (!ANNOUNCEMENT_TYPES.includes(data.type)) return deny('Invalid announcement type');
 
-  const auth = authorize(src, companies.find((c) => c.id === data.companyId));
+  const auth = authorize(
+    src,
+    companies.find((c) => c.id === data.companyId),
+  );
   if (auth.ok === false) return auth;
 
   const title = normalizeText(data.title);
@@ -87,7 +90,10 @@ const validateDeleteAnnouncement = (src: number, data: DeleteAnnouncementPayload
   const announcement = announcements.find((a) => a.id === data.id);
   if (!announcement) return deny('Announcement not found');
 
-  const auth = authorize(src, companies.find((c) => c.id === announcement.companyId));
+  const auth = authorize(
+    src,
+    companies.find((c) => c.id === announcement.companyId),
+  );
   if (auth.ok === false) return auth;
 
   return allow(announcement);
@@ -97,7 +103,10 @@ const validateAddPost = (src: number, data: AddPostRequest): Validation<{ compan
   if (!isRecord(data) || typeof data.companyId !== 'string' || !isRecord(data.post)) return deny('Invalid request');
   if (data.post.type !== 'post' && data.post.type !== 'menu') return deny('Invalid post type');
 
-  const auth = authorize(src, companies.find((c) => c.id === data.companyId));
+  const auth = authorize(
+    src,
+    companies.find((c) => c.id === data.companyId),
+  );
   if (auth.ok === false) return auth;
 
   const title = normalizeText(data.post.title);
@@ -117,11 +126,17 @@ const validateAddPost = (src: number, data: AddPostRequest): Validation<{ compan
   return allow({ company: auth.value, post });
 };
 
-const validateDeletePost = (src: number, data: DeletePostRequest): Validation<{ company: Company; postIndex: number }> => {
+const validateDeletePost = (
+  src: number,
+  data: DeletePostRequest,
+): Validation<{ company: Company; postIndex: number }> => {
   if (!isRecord(data) || typeof data.companyId !== 'string' || typeof data.postId !== 'string')
     return deny('Invalid request');
 
-  const auth = authorize(src, companies.find((c) => c.id === data.companyId));
+  const auth = authorize(
+    src,
+    companies.find((c) => c.id === data.companyId),
+  );
   if (auth.ok === false) return auth;
 
   const postIndex = auth.value.posts.findIndex((p) => p.id === data.postId);
@@ -137,7 +152,10 @@ const validateSetCompanyStatus = (
   if (!isRecord(data) || typeof data.companyId !== 'string') return deny('Invalid request');
   if (!COMPANY_STATUSES.includes(data.status)) return deny('Invalid status');
 
-  const auth = authorize(src, companies.find((c) => c.id === data.companyId));
+  const auth = authorize(
+    src,
+    companies.find((c) => c.id === data.companyId),
+  );
   if (auth.ok === false) return auth;
 
   return allow({ company: auth.value, status: data.status });
