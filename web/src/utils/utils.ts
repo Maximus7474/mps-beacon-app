@@ -8,3 +8,19 @@ export function formatRelativeTime(minutes: number): string {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
+
+export function getCompanyVanityPhoneNumber({
+  name,
+  pattern = 'EXT-{NUMBER}',
+  maxlength = 15,
+}: {
+  name: string;
+  pattern?: string | null;
+  maxlength?: number;
+}): string {
+  const activePattern = pattern || 'EXT-{NUMBER}';
+  const sanitized = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  const vanityValue = sanitized.slice(0, maxlength) || 'CALL';
+
+  return activePattern.replace('{NUMBER}', vanityValue);
+}
