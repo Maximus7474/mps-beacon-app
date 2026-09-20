@@ -17,6 +17,12 @@ if (window.name === '' || devMode) {
   };
 
   if (devMode) {
+    // Mock implementation for web dev, provided by LB-Phone resource
+    globalThis.formatPhoneNumber = (val: string) => {
+      const cleaned = val.replace(/\D/g, '').padEnd(10, '0');
+      return cleaned.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+    };
+
     renderApp();
   } else {
     window.addEventListener('message', (event) => {
