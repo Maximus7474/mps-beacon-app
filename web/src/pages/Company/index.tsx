@@ -15,8 +15,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
     .filter((a) => a.companyId === company.id)
     .sort((a, b) => a.minutesAgo - b.minutesAgo)[0];
 
-  const statusLabel =
-    company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy' : 'Closed';
+  const statusLabel = company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy' : 'Closed';
 
   return (
     <div className={styles.page}>
@@ -46,12 +45,17 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
             </div>
           </div>
           <div className={styles.heroMeta}>
+            {/* ToDo:
+                Add button to implement setting way point
+                Or if possible open maps application using undoc'd shared components
+              */}
             {company.address && (
               <div className={styles.metaLine}>
                 <MapPinIcon size={14} weight='fill' />
                 {company.address}
               </div>
             )}
+            {/* ToDo: add button to implement calling users */}
             <div className={styles.metaLine}>
               <PhoneIcon size={14} weight='fill' />
               {company.phone
