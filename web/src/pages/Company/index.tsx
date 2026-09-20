@@ -46,10 +46,12 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
             </div>
           </div>
           <div className={styles.heroMeta}>
-            <div className={styles.metaLine}>
-              <MapPinIcon size={14} weight='fill' />
-              {company.address}
-            </div>
+            {company.address && (
+              <div className={styles.metaLine}>
+                <MapPinIcon size={14} weight='fill' />
+                {company.address}
+              </div>
+            )}
             <div className={styles.metaLine}>
               <PhoneIcon size={14} weight='fill' />
               {company.phone
