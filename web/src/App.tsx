@@ -3,7 +3,7 @@ import Frame from './components/dev/Frame';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import ThemeToggler from './components/dev/Theming';
 import PageLayout from './components/PageLayout';
-import { AnnouncementFeedPage, CompanyPage, HomePage, ManagePage } from './pages';
+import { AnnouncementFeedPage, CompanyPage, HomePage, ManagePage, ChannelsPage } from './pages';
 import { BeaconProvider } from './contexts/BeaconProvider';
 import { useBeacon } from './hooks/useBeacon';
 
@@ -43,6 +43,7 @@ const AppShell = () => {
             <Route path='company' element={<CompanyRoute />} />
             <Route path='feed' element={<AnnouncementFeedRoute />} />
             <Route path='manage' element={<ManageRoute />} />
+            <Route path='channels' element={<ChannelsRoute />} />
 
             {/* Redirect if accessing an unknown or unauthorised page */}
             <Route path='*' element={<Navigate to='/' replace />} />
@@ -76,6 +77,10 @@ const CompanyRoute = () => {
 const AnnouncementFeedRoute = () => {
   const { announcements } = useBeacon();
   return <AnnouncementFeedPage announcements={announcements} />;
+};
+
+const ChannelsRoute = () => {
+  return <ChannelsPage />;
 };
 
 const ManageRoute = () => {

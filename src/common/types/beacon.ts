@@ -85,3 +85,32 @@ export type JobData = {
 export type EmployeeCompanyResponse = {
   companyId: string | null;
 };
+
+export type ChannelScope = 'personal' | 'company';
+
+export type Channel = {
+  id: string;
+  scope: ChannelScope;
+  /** Personal scope: the company the conversation is with. */
+  companyId?: string;
+  /** Branding snapshot (personal scope) so lists render without company joins. */
+  companyName?: string;
+  companyIcon?: string;
+  companyIconBg?: string;
+  companyImage?: string;
+  /** Company scope: the customer's phone number. */
+  phoneNumber: `${number}` | null;
+  lastMessagePreview: string;
+  /** Unix timestamp (ms) of the latest message. */
+  lastMessageAt: number;
+  unreadCount: number;
+};
+
+export type GetChannelsRequest = {
+  scope: ChannelScope;
+  /** Required for company scope; the employee's company. */
+  companyId?: string;
+  /** Paging hooks for the backend (unused until queries are implemented). */
+  offset?: number;
+  limit?: number;
+};

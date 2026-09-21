@@ -3,20 +3,23 @@ import type { NavItem } from '../types';
 import { useBeacon } from '../hooks/useBeacon';
 
 import './Footer.scss';
-import { BellIcon, HouseSimpleIcon, WrenchIcon } from '@phosphor-icons/react/dist/ssr';
+import { BellIcon, ChatDotsIcon, HouseSimpleIcon, WrenchIcon } from '@phosphor-icons/react/dist/ssr';
 
 const baseRoutes: NavItem[] = [
   { id: 'home', icon: <HouseSimpleIcon size='1.75em' />, path: '/', tooltip: 'Home' },
   { id: 'feed', icon: <BellIcon size='1.75em' />, path: '/feed', tooltip: 'Announcements' },
+  { id: 'channels', icon: <ChatDotsIcon size='1.75em' />, path: '/channels', tooltip: 'Messages' },
 ];
 
-const manageRoute: NavItem = { id: 'manage', icon: <WrenchIcon size='1.75em' />, path: '/manage', tooltip: 'Manage' };
+const employeeRoutes: NavItem[] = [
+  { id: 'manage', icon: <WrenchIcon size='1.75em' />, path: '/manage', tooltip: 'Manage' },
+];
 
 const Footer: React.FC = () => {
   const { pathname } = useLocation();
   const { employeeMode } = useBeacon();
 
-  const routes = employeeMode ? [...baseRoutes, manageRoute] : baseRoutes;
+  const routes = employeeMode ? [...baseRoutes, ...employeeRoutes] : baseRoutes;
 
   return (
     <footer className='app-footer'>
