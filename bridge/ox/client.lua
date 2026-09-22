@@ -1,38 +1,55 @@
 if (not IsFrameworkStarted("ox")) then return end
 
-local OX = exports["ox_core"]
+local chunk = LoadResourceFile("ox_core", "lib/init.lua")
+load(chunk, "@@ox_core/lib/init.lua", "t")()
 
-if (not OX) then
-    error('\n > Unable to access ox_core exported functions, please check why this is occuring.\n > This script WILL NOT work until you resolve this.')
+local counter = 0
+while not Ox and counter < 10 do
+    Wait(500)
+    counter += 1
+end
+
+if (not Ox) then
+    error(
+    '\n > Unable to access ox_core exported functions, please check why this is occuring.\n > This script WILL NOT work until you resolve this.')
     return
 end
 
-local player = OX:GetPlayer()
-
 ---@return nil | { group: string; grade: number; }
 local function getJobData()
+    local player = Ox.GetPlayer()
+    if (not player) then return nil end
+
     local group = player.get('activeGroup')
-
     if not group then return nil end
-
-    local grade = player.getGroup(group)
 
     return {
         group = group,
-        grade = grade
+        grade = player.getGroup(group)
     }
 end
 
-player.on('activeGroup', function ()
+local function init()
+    local player = Ox.GetPlayer()
+    if (not player) then return print('no PLAYER !') end
+
+    player.on('activeGroup', function()
+        TriggerEvent('beaconapp:groupupdate', getJobData())
+    end)
+
+    TriggerEvent('beaconapp:client:ready')
+    TriggerEvent('beaconapp:groupupdate', getJobData())
+    print('ox_core bridge is ready')
+end
+
+AddEventHandler('ox:playerLoaded', init)
+
+RegisterNetEvent('ox:setGroup', function()
     TriggerEvent('beaconapp:groupupdate', getJobData())
 end)
 
-AddEventHandler('ox:playerLoaded', function ()
-    TriggerEvent('beaconapp:groupupdate', getJobData())
-end)
-
-RegisterNetEvent('ox:setGroup', function(groupName, grade)
-    TriggerEvent('beaconapp:groupupdate', getJobData())
-end)
+if Ox.GetPlayer()?.charId then
+	init()
+end
 
 exports('getJobData', getJobData)

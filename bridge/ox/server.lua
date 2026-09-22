@@ -1,8 +1,15 @@
 if (not IsFrameworkStarted("ox")) then return end
 
-local OX = exports["ox_core"]
+local chunk = LoadResourceFile("ox_core", "lib/init.lua")
+load(chunk, "@@ox_core/lib/init.lua", "t")()
 
-if (not OX) then
+local counter = 0
+while not Ox and counter < 10 do
+    Wait(500)
+    counter += 1
+end
+
+if (not Ox) then
     error('\n > Unable to access ox_core exported functions, please check why this is occuring.\n > This script WILL NOT work until you resolve this.')
     return
 end
@@ -10,7 +17,7 @@ end
 ---@param src number
 ---@return table
 local function getPlayer(src)
-    return OX:GetPlayer(src)
+    return Ox.GetPlayer(src)
 end
 
 ---@param src number
@@ -34,5 +41,16 @@ local function hasGrade(src, job, grade)
     return groups[job] <= grade
 end
 
+local function getName(src)
+    local player = getPlayer(src)
+
+    if not player then return GetPlayerName(src) end
+
+    local firstName, lastName = player.get('firstName'), player.get('lastName')
+
+    return string.format("%s %s", firstName, lastName)
+end
+
 exports('hasJob', hasJob)
 exports('hasGrade', hasGrade)
+exports('getName', getName)
