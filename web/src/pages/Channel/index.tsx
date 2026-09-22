@@ -178,7 +178,7 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
         {loading ? (
           <div className={styles.empty}>Loading…</div>
         ) : visible.length === 0 ? (
-          <div className={styles.empty}>{personal ? 'No messages yet — say hello!' : 'No customer messages yet.'}</div>
+          <div className={styles.empty}>No messages yet</div>
         ) : (
           <>
             {messages.length > visible.length && <div className={styles.historyHint}>Earlier messages</div>}
