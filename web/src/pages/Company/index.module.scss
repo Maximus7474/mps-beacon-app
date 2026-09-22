@@ -149,6 +149,48 @@
   padding-top: $sp-3;
 }
 
+// Message-company CTA
+.messageButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  height: auto;
+  margin: $sp-2 0 $sp-3;
+  padding: 11px 0;
+  border: none;
+  border-radius: $r-md;
+  background: $blue;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: none;
+  cursor: pointer;
+  transition: background-color $duration $ease-out, opacity $duration $ease-out;
+
+  &:hover {
+    filter: none;
+    background: $blue;
+    opacity: 0.88;
+  }
+
+  &:active {
+    opacity: 0.7;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.metaError {
+  font-size: 13px;
+  color: $status-closed-text;
+  margin-bottom: $sp-2;
+}
+
 .metaLine {
   font-size: 14px;
   color: var(--text-secondary);

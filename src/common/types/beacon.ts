@@ -144,3 +144,19 @@ export type GetMessagesRequest = {
   offset?: number;
   limit?: number;
 };
+
+/**
+ * Ask the server for the viewer's personal channel with a company, creating
+ * it on first contact (provisional — DB schema to be finalised).
+ */
+export type GetOrCreateChannelRequest = {
+  companyId: string;
+};
+
+/**
+ * `created` tells the UI whether this is a brand-new conversation; failure
+ * carries a human-readable `message` (e.g. the business is unreachable).
+ */
+export type GetOrCreateChannelResponse =
+  | { success: true; channel: Channel; created: boolean }
+  | { success: false; message: string };

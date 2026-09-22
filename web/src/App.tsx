@@ -89,18 +89,41 @@ const ChannelsRoute = () => {
 
 /**
  * Resolves the :channelId URL param to a channel and renders the
- * conversation. In dev the id resolves against SEED_CHANNELS; in-game the
- * fetched channel set will be available from the provider instead.
+ * conversation. In dev the id resolves against SEED_CHANNELS or a channel
+ * created through the Company page's Message button; in-game the fetched
+ * channel set will be available from the provider instead.
  */
 const ChannelRoute = () => {
   const { channelId } = useParams();
   const navigate = useNavigate();
-  const { employeeMode, employeeCompanyId } = useBeacon();
+  const { employeeMode, employeeCompanyId, companies } = useBeacon();
 
   if (!channelId) return <Navigate to='/channels' replace />;
 
   // ToDo: replace with provider-sourced channels once the backend supplies them.
-  const channel = devMode ? SEED_CHANNELS.find((c) => c.id === channelId) : undefined;
+  let channel = devMode ? SEED_CHANNELS.find((c) => c.id === channelId) : undefined;
+
+  // Dev stub: channels fabricated by requestChannel() (`dev-<companyId>`) are
+  // not in SEED_CHANNELS — rebuild them from the company branding snapshot.
+  // ToDo: once the server creates real channel rows this falls away.
+  if (!channel && devMode && channelId.startsWith('dev-')) {
+    const company = companies.find((c) => c.id === channelId.slice(4));
+    if (company) {
+      channel = {
+        id: `dev-${company.id}`,
+        scope: 'personal',
+        companyId: company.id,
+        companyName: company.name,
+        companyIcon: company.icon,
+        companyIconBg: company.iconBg,
+        companyImage: company.image,
+        phoneNumber: company.phone,
+        lastMessagePreview: 'No messages yet',
+        lastMessageAt: Date.now(),
+        unreadCount: 0,
+      };
+    }
+  }
 
   if (!channel) return <Navigate to='/channels' replace />;
 

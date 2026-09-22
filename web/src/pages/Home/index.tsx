@@ -79,7 +79,7 @@ function CompanyCard({ company, onClick }: { company: Company; onClick: () => vo
             <span className={styles.lastActive}>{formatRelativeTime(company.lastActiveMinutes)}</span>
           </div>
         </div>
-        <CaretRightIcon className={styles.chevron} size="1rem" />
+        <CaretRightIcon className={styles.chevron} size='1rem' />
       </div>
     </div>
   );

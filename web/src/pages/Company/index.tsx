@@ -1,8 +1,11 @@
-import { formatRelativeTime, getCompanyVanityPhoneNumber } from '~/utils/utils';
 import type { Announcement, Company } from '@common/types';
+import { CaretLeftIcon, ChatCircleDotsIcon, InfoIcon, MapPinIcon, PhoneIcon } from '@phosphor-icons/react/dist/ssr';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { BrandMark } from '~/components/BrandMark';
+import { requestChannel } from '~/utils/channel';
+import { formatRelativeTime, getCompanyVanityPhoneNumber } from '~/utils/utils';
 import styles from './index.module.scss';
-import { CaretLeftIcon, MapPinIcon, PhoneIcon, InfoIcon } from '@phosphor-icons/react/dist/ssr';
 
 interface CompanyPageProps {
   company: Company;
@@ -11,16 +14,44 @@ interface CompanyPageProps {
 }
 
 export function CompanyPage({ company, announcements, onBack }: CompanyPageProps) {
+  const navigate = useNavigate();
+  const [requesting, setRequesting] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+
   const latestAnnouncement = announcements
     .filter((a) => a.companyId === company.id)
     .sort((a, b) => a.minutesAgo - b.minutesAgo)[0];
 
   const statusLabel = company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy' : 'Closed';
 
+  /**
+   * ToDo: server callback `beaconapp:getorcreatechannel, creates the
+   *    channel row if the viewer hasn't messaged them before
+   */
+  const handleMessageCompany = async () => {
+    if (requesting) return;
+    setRequesting(true);
+    setRequestError(null);
+
+    try {
+      const res = await requestChannel(company);
+      if (res.success) {
+        navigate(`/channels/${res.channel.id}`);
+      } else {
+        setRequestError(res.message);
+      }
+    } catch (err) {
+      console.error('[beaconapp] failed to request channel', err);
+      setRequestError('Could not reach the business.');
+    } finally {
+      setRequesting(false);
+    }
+  };
+
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <button className={styles.back} onClick={onBack} aria-label='Go back'>
+        <button type='button' className={styles.back} onClick={onBack} aria-label='Go back'>
           <CaretLeftIcon size={18} weight='bold' />
         </button>
         <div className={styles.navTitle}>{company.name}</div>
@@ -45,6 +76,11 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
             </div>
           </div>
           <div className={styles.heroMeta}>
+            <button type='button' className={styles.messageButton} onClick={handleMessageCompany} disabled={requesting}>
+              <ChatCircleDotsIcon size={16} weight='fill' />
+              {requesting ? 'Opening chat…' : 'Message'}
+            </button>
+            {requestError && <div className={styles.metaError}>{requestError}</div>}
             {/* ToDo:
                 Add button to implement setting way point
                 Or if possible open maps application using undoc'd shared components
