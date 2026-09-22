@@ -1,0 +1,86 @@
+[
+  {
+    "id": "c1",
+    "name": "Police Department",
+    "job": "police",
+    "category": "Law Enforcement",
+    "icon": "ShieldIcon",
+    "iconBg": "#1E3A8A",
+    "tags": ["police", "cop", "emergency", "law"],
+    "description": "City law enforcement agency responsible for maintaining public order, emergency response, and investigation.",
+    "address": "Mission Row Police Station",
+    "phone": "5550100"
+  },
+  {
+    "id": "c2",
+    "name": "Sheriff Office",
+    "job": "sheriff",
+    "category": "Law Enforcement",
+    "icon": "StarIcon",
+    "iconBg": "#854D0E",
+    "tags": ["sheriff", "county", "patrol", "law"],
+    "description": "County sheriff department providing law enforcement and public safety services across Blaine County.",
+    "address": "Sandy Shores Sheriff Station",
+    "phone": "5550101"
+  },
+  {
+    "id": "c3",
+    "name": "State Police",
+    "job": "statepolice",
+    "category": "Law Enforcement",
+    "icon": "ShieldStarIcon",
+    "iconBg": "#1E293B",
+    "tags": ["state", "trooper", "highway", "patrol"],
+    "description": "Statewide law enforcement agency focused on highway safety, traffic enforcement, and state jurisdiction operations.",
+    "address": "State Trooper HQ",
+    "phone": "5550102"
+  },
+  {
+    "id": "c5",
+    "name": "Benny's Mechanic",
+    "job": "mechanic",
+    "category": "Automotive",
+    "icon": "WrenchIcon",
+    "iconBg": "#D97706",
+    "tags": ["mechanic", "repair", "tuning", "customs"],
+    "description": "Full-service auto repair and custom tuning shop providing engine diagnostics, bodywork, and performance upgrades.",
+    "address": "Power Street, Strawberry",
+    "phone": "5550103"
+  },
+  {
+    "id": "c6",
+    "name": "Gruppe 6",
+    "job": "gruppe6",
+    "category": "Security Services",
+    "icon": "LockIcon",
+    "iconBg": "#334155",
+    "tags": ["security", "armored", "transport", "protection"],
+    "description": "Private security and armored transport firm specializing in high-value asset protection and escort services.",
+    "address": "Gruppe 6 HQ, La Puerta",
+    "phone": "5550104"
+  },
+  {
+    "id": "c7",
+    "name": "Pillbox Hill Medical Center",
+    "job": "hospital",
+    "category": "Medical Services",
+    "icon": "CrossIcon",
+    "iconBg": "#DC2626",
+    "tags": ["ems", "hospital", "medical", "doctor"],
+    "description": "Primary healthcare and emergency trauma center offering acute medical care, surgery, and ambulance services.",
+    "address": "Pillbox Hill, Downtown",
+    "phone": "5550105"
+  },
+  {
+    "id": "c8",
+    "name": "Fire Department",
+    "job": "fire",
+    "category": "Emergency Services",
+    "icon": "FlameIcon",
+    "iconBg": "#EA580C",
+    "tags": ["fire", "rescue", "hazmat", "emergency"],
+    "description": "Municipal fire department providing fire suppression, heavy rescue, and hazardous material response.",
+    "address": "El Burro Heights Station",
+    "phone": "5550106"
+  }
+]
