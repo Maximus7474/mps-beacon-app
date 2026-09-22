@@ -89,7 +89,8 @@
 .scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0 $sp-4 $sp-4;
+  // 3 for right to accomodate scroll bar
+  padding: 0 $sp-3 $sp-4 $sp-4;
 }
 
 // Section
