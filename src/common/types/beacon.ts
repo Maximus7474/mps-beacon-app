@@ -44,6 +44,15 @@ export type Announcement = {
   minutesAgo: number;
 };
 
+/**
+ * Static profile of a company, loaded from `static/companies.json` on the
+ * server (no runtime-mutable fields — status lives in server memory).
+ */
+export type StaticCompany = Pick<
+  Company,
+  'id' | 'name' | 'job' | 'category' | 'icon' | 'iconBg' | 'tags' | 'description' | 'address' | 'phone'
+>;
+
 export type AddAnnouncementPayload = {
   companyId: string;
   type: AnnouncementType;
@@ -110,7 +119,7 @@ export type GetChannelsRequest = {
   scope: ChannelScope;
   /** Required for company scope; the employee's company. */
   companyId?: string;
-  /** Paging hooks for the backend (unused until queries are implemented). */
+  /** Paging hooks for the backend; channels are returned in full (ToDo: honour limit/offset). */
   offset?: number;
   limit?: number;
 };
@@ -140,14 +149,24 @@ export type Message = {
 
 export type GetMessagesRequest = {
   channelId: string;
-  /** Paging hooks for the backend (unused until queries are implemented). */
+  /** Server honours `limit` (default 50, max 100) and `offset`. */
   offset?: number;
   limit?: number;
 };
 
+export type SendMessageRequest = {
+  channelId: string;
+  content: string;
+};
+
+/**
+ * `message` echoes the stored row so the UI can append it without refetching.
+ */
+export type SendMessageResponse = { success: true; message: Message } | { success: false; message: string };
+
 /**
  * Ask the server for the viewer's personal channel with a company, creating
- * it on first contact (provisional — DB schema to be finalised).
+ * it on first contact.
  */
 export type GetOrCreateChannelRequest = {
   companyId: string;

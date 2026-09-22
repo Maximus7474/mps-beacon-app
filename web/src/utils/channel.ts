@@ -3,20 +3,8 @@ import { fetchNui } from '~/utils/fetchNui';
 import { devMode } from '~/utils/utils';
 
 /**
- * ToDo (server): implement the `beaconapp:getorcreatechannel` server callback
- * (see src/server/index.ts) so this resolves a real channel id:
- *   1. Look up the viewer's personal channel for `companyId` in the DB.
- *   2. If missing, create it (channel row + company-scope mirror row the
- *      employees see), reusing the company branding snapshot pattern from
- *      the channels list.
- *   3. Return { success: true, channel, created } — `created` lets the UI
- *      show a "started a conversation" hint if we ever want one.
- *   4. Return { success: false, message } when the company is unreachable
- *      (closed/no phone) so the UI can surface it without navigating.
- *
- * Dev stub: fabricates a deterministic channel from the SEED branding when
- * the NUI round-trip is unavailable, so the whole flow is testable in the
- * browser before the server work exists.
+ * Dev stub: fabricates a deterministic channel (`dev-<companyId>`) when the
+ * NUI round-trip is unavailable, so the flow stays testable in the browser.
  */
 export async function requestChannel(
   company: Pick<Company, 'id' | 'name' | 'icon' | 'iconBg' | 'image' | 'phone'>,

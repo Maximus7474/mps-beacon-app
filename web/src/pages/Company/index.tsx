@@ -25,8 +25,8 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
   const statusLabel = company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy' : 'Closed';
 
   /**
-   * ToDo: server callback `beaconapp:getorcreatechannel, creates the
-   *    channel row if the viewer hasn't messaged them before
+   * `beaconapp:getorcreatechannel` creates the channel pair on first contact;
+   * a failure (closed business, no phone) is surfaced through `res.message`.
    */
   const handleMessageCompany = async () => {
     if (requesting) return;
