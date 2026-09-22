@@ -3,7 +3,7 @@ import { formatRelativeTime } from '~/utils/utils';
 import type { Company } from '@common/types';
 import { BrandMark } from '~/components/BrandMark';
 import styles from './index.module.scss';
-import { MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr';
+import { CaretRightIcon, MagnifyingGlassIcon } from '@phosphor-icons/react/dist/ssr';
 
 interface HomePageProps {
   companies: Company[];
@@ -79,7 +79,7 @@ function CompanyCard({ company, onClick }: { company: Company; onClick: () => vo
             <span className={styles.lastActive}>{formatRelativeTime(company.lastActiveMinutes)}</span>
           </div>
         </div>
-        <span className={styles.chevron}>›</span>
+        <CaretRightIcon className={styles.chevron} size="1rem" />
       </div>
     </div>
   );
