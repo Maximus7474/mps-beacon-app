@@ -11,6 +11,7 @@ import type {
   JobData,
   UpdateCompanyStatusRequest,
 } from '../common/types';
+import './init';
 
 const register = <T>(name: string, handler: (data: any) => Promise<T>, onError: T) => {
   RegisterNuiCallback(name, async (data: any, cb: (result: T) => void) => {
