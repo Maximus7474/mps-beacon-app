@@ -1,0 +1,257 @@
+@use '../../colors' as *;
+
+.page {
+  flex: 1;
+  margin-top: 1rem;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--background-primary);
+}
+
+// Header
+.header {
+  display: flex;
+  align-items: center;
+  gap: $sp-3;
+  padding: 2rem $sp-4 $sp-3;
+  background: var(--navbar-background);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 0.5px solid var(--separator-opaque);
+  flex-shrink: 0;
+}
+
+.back {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  padding: 4px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: $blue;
+  font-size: 17px;
+  font-weight: 400;
+  text-transform: none;
+  cursor: pointer;
+
+  &:hover {
+    filter: none;
+  }
+
+  &:active {
+    opacity: 0.5;
+  }
+}
+
+.headerAvatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.headerAvatarPhone {
+  background: var(--fill);
+  color: var(--text-secondary);
+}
+
+.headerText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.headerTitle {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerSubtitle {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+// Thread
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: $sp-4 $sp-3 $sp-2;
+  display: flex;
+  flex-direction: column;
+}
+
+.historyHint {
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: $sp-1 0 $sp-2;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  margin-top: auto;
+}
+
+.rowWrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  margin-bottom: 6px;
+}
+
+.rowIncoming {
+  align-self: flex-start;
+  align-items: flex-start;
+}
+
+.rowOutgoing {
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+// Consecutive bubbles from the same side tuck together.
+.rowMerged {
+  margin-top: -4px;
+}
+
+.caption {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 $sp-2 3px;
+}
+
+.captionExternal {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 $sp-2 3px;
+}
+
+.dayDivider {
+  align-self: center;
+  margin: $sp-3 0 $sp-2;
+  padding: 3px 10px;
+  border-radius: $r-pill;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.bubble {
+  padding: 8px 12px;
+  border-radius: 18px;
+  font-size: 15px;
+  line-height: 1.35;
+  color: var(--text-primary);
+  background: var(--bubble-outgoing);
+  word-break: break-word;
+  white-space: pre-wrap;
+  box-shadow: var(--card-shadow);
+}
+
+.rowIncoming .bubble {
+  background: var(--bubble-incoming);
+  color: #fff;
+}
+
+.rowIncoming:not(.rowMerged) .bubble {
+  border-bottom-left-radius: 4px;
+}
+
+.rowOutgoing:not(.rowMerged) .bubble {
+  border-bottom-right-radius: 4px;
+}
+
+.time {
+  font-size: 10px;
+  color: var(--text-tertiary);
+  margin: 3px $sp-2 0;
+}
+
+// Composer
+.composer {
+  display: flex;
+  align-items: center;
+  gap: $sp-2;
+  padding: $sp-2 $sp-3;
+  padding-bottom: max($sp-2, env(safe-area-inset-bottom));
+  background: var(--navbar-background);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 0.5px solid var(--separator-opaque);
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  height: 38px;
+  padding: 0 14px;
+  font-size: 15px;
+  font-weight: 400;
+  font-family: $font;
+  color: var(--text-primary);
+  background: var(--fill);
+  border: none;
+  border-radius: $r-pill;
+  outline: none;
+  transition: background-color $duration $ease-out;
+
+  &::placeholder {
+    color: var(--text-secondary);
+  }
+}
+
+.send {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: $blue;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color $duration $ease-out, opacity $duration $ease-out;
+
+  &:hover {
+    filter: none;
+    background: $blue;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}

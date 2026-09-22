@@ -1,11 +1,12 @@
+import { SEED_CHANNELS } from '@common/data/channels';
 import { type ReactNode, useEffect } from 'react';
-import Frame from './components/dev/Frame';
-import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import ThemeToggler from './components/dev/Theming';
+import { Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import PageLayout from './components/PageLayout';
-import { AnnouncementFeedPage, CompanyPage, HomePage, ManagePage, ChannelsPage } from './pages';
+import Frame from './components/dev/Frame';
+import ThemeToggler from './components/dev/Theming';
 import { BeaconProvider } from './contexts/BeaconProvider';
 import { useBeacon } from './hooks/useBeacon';
+import { AnnouncementFeedPage, ChannelPage, ChannelsPage, CompanyPage, HomePage, ManagePage } from './pages';
 
 import './App.scss';
 
@@ -44,6 +45,7 @@ const AppShell = () => {
             <Route path='feed' element={<AnnouncementFeedRoute />} />
             <Route path='manage' element={<ManageRoute />} />
             <Route path='channels' element={<ChannelsRoute />} />
+            <Route path='channels/:channelId' element={<ChannelRoute />} />
 
             {/* Redirect if accessing an unknown or unauthorised page */}
             <Route path='*' element={<Navigate to='/' replace />} />
@@ -80,7 +82,35 @@ const AnnouncementFeedRoute = () => {
 };
 
 const ChannelsRoute = () => {
-  return <ChannelsPage />;
+  const navigate = useNavigate();
+  // ToDo: selecting a channel opens the conversation page for that channel.
+  return <ChannelsPage onOpenChannel={(channel) => navigate(`/channels/${channel.id}`)} />;
+};
+
+/**
+ * Resolves the :channelId URL param to a channel and renders the
+ * conversation. In dev the id resolves against SEED_CHANNELS; in-game the
+ * fetched channel set will be available from the provider instead.
+ */
+const ChannelRoute = () => {
+  const { channelId } = useParams();
+  const navigate = useNavigate();
+  const { employeeMode, employeeCompanyId } = useBeacon();
+
+  if (!channelId) return <Navigate to='/channels' replace />;
+
+  // ToDo: replace with provider-sourced channels once the backend supplies them.
+  const channel = devMode ? SEED_CHANNELS.find((c) => c.id === channelId) : undefined;
+
+  if (!channel) return <Navigate to='/channels' replace />;
+
+  // A company channel only makes sense while the employee is on the clock:
+  // guard against direct URL access without employee mode.
+  if (channel.scope === 'company' && (!employeeMode || channel.companyId !== employeeCompanyId)) {
+    return <Navigate to='/channels' replace />;
+  }
+
+  return <ChannelPage channel={channel} onBack={() => navigate('/channels')} />;
 };
 
 const ManageRoute = () => {

@@ -124,6 +124,12 @@ $employee-bg: rgba(175, 82, 222, 0.12);
 
 $toast-background: rgba(30, 30, 30, 0.88);
 
+// Chat bubbles
+$bubble-incoming-light: #dcdcdc;
+$bubble-incoming-dark: #191919;
+$bubble-outgoing-light: #0a84ff;
+$bubble-outgoing-dark: #076bcf;
+
 :root {
   --background-primary: #{$bg-primary-light};
   --background-secondary: #{$bg-secondary-light};
@@ -138,6 +144,9 @@ $toast-background: rgba(30, 30, 30, 0.88);
 
   --separator: #{$separator-light};
   --separator-opaque: #{$separator-opaque-light};
+
+  --bubble-outgoing: #{$bubble-outgoing-light};
+  --bubble-incoming: #{$bubble-incoming-light};
 
   --secondary-shadow: rgba(0, 0, 0, 0.15);
   --card-shadow: 0 1px 0 rgba(0, 0, 0, 0.05), 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -157,6 +166,9 @@ $toast-background: rgba(30, 30, 30, 0.88);
 
   --separator: #{$separator-dark};
   --separator-opaque: #{$separator-opaque-dark};
+
+  --bubble-outgoing: #{$bubble-outgoing-dark};
+  --bubble-incoming: #{$bubble-incoming-dark};
 
   --secondary-shadow: rgba(255, 255, 255, 0.1);
   --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 8px rgba(0, 0, 0, 0.4);

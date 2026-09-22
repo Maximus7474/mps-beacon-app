@@ -114,3 +114,33 @@ export type GetChannelsRequest = {
   offset?: number;
   limit?: number;
 };
+
+/**
+ * Author of an outgoing message.
+ */
+export type MessageAuthor = 'user' | 'employee';
+
+/** Which side of the conversation the viewer sees a message on. */
+export type MessageDirection = 'incoming' | 'outgoing';
+
+export type Message = {
+  id: string;
+  channelId: string;
+  direction: MessageDirection;
+  /** Present only for outgoing messages. */
+  author?: MessageAuthor;
+  /**
+   * Employee display name for outgoing messages sent by colleagues.
+   */
+  sentByEmployeeName?: string;
+  content: string;
+  /** Unix timestamp (ms). */
+  timestamp: number;
+};
+
+export type GetMessagesRequest = {
+  channelId: string;
+  /** Paging hooks for the backend (unused until queries are implemented). */
+  offset?: number;
+  limit?: number;
+};
