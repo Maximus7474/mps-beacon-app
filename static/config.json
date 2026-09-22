@@ -1,7 +1,8 @@
 {
-  "Identifier": "alerter",
+  "Identifier": "mps-beacon-app",
   "DefaultApp": true,
-  "AppName": "Alerter",
-  "AppDescription": "In need of help ? Connect the app with familly and friends to send distress signals if you ever need help, includes accurate GPS positioning to guide them straight to you !",
-  "AppDeveloper": "LostAndFound Inc."
+  "AppName": "Beacon",
+  "AppDescription": "All compagnies in San Andreas",
+  "AppDeveloper": "S.A. State",
+  "AllowMessagingWhenClosed": true
 }
