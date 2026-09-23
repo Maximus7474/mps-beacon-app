@@ -32,7 +32,7 @@ createBuilder(
       name: 'client',
       options: {
         platform: 'browser',
-        target: ['es2021'], 
+        target: ['es2021'],
         format: 'iife',
         dropLabels: [...dropLabels, '$SERVER'],
         external: ['shared'],
@@ -48,7 +48,9 @@ createBuilder(
       dependencies: ['/server:13068', '/onesync', 'oxmysql'],
       metadata: {
         lua54: 'yes',
-        ui_page: 'dist/web/index.html',
+        ui_page: watch
+          ? 'http://localhost:5173/'
+          : 'dist/web/index.html',
         node_version: '22'
       },
     });
@@ -57,4 +59,4 @@ createBuilder(
   }
 );
 
-if (web && watch) await exec("cd ./web && vite build --watch");
+if (web && watch) await exec("cd ./web && vite dev");
