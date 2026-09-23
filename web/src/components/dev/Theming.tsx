@@ -5,7 +5,8 @@ import { useBeacon } from '~/hooks/useBeacon';
 import './Theming.scss';
 
 const ThemeToggler: React.FC = () => {
-  const [theme, setTheme] = useState('light');
+  // Don't commit
+  const [theme, setTheme] = useState('dark');
   const { employeeMode, setEmployeeMode } = useBeacon();
 
   const toggleTheme = () => {

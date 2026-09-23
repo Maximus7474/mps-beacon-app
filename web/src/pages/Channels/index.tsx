@@ -177,7 +177,7 @@ export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
           </>
         )}
 
-        <div style={{ height: 16 }} />
+        <div style={{ height: '1rem' }} />
       </div>
     </div>
   );

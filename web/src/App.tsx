@@ -166,42 +166,18 @@ const ManageRoute = () => {
   );
 };
 
-const AppProvider = ({ children }: { children: ReactNode }) => {
-  if (devMode) {
-    const handleResize = () => {
-      const { innerWidth, innerHeight } = window;
-
-      const aspectRatio = innerWidth / innerHeight;
-      const phoneAspectRatio = 27.6 / 59;
-
-      if (phoneAspectRatio < aspectRatio) {
-        document.documentElement.style.fontSize = '1.66vh';
-      } else {
-        document.documentElement.style.fontSize = '3.4vw';
-      }
-    };
-
-    useEffect(() => {
-      window.addEventListener('resize', handleResize);
-
-      if (devMode) {
-        document.body.style.visibility = 'visible';
-        return;
-      }
-
-      return () => {
-        window.removeEventListener('resize', handleResize);
-      };
-    }, []);
-
-    handleResize();
-
-    return (
-      <div className='dev-wrapper'>
-        <Frame>{children}</Frame>
-      </div>
-    );
-  } else return children;
-};
+/**
+ * In dev the app renders inside a phone frame; in-game the NUI frame *is* the
+ * phone screen. Both are sized by the viewport-relative root font size in
+ * index.scss, so no JS resizing is needed here.
+ */
+const AppProvider = ({ children }: { children: ReactNode }) =>
+  devMode ? (
+    <div className='dev-wrapper'>
+      <Frame>{children}</Frame>
+    </div>
+  ) : (
+    children
+  );
 
 export default App;

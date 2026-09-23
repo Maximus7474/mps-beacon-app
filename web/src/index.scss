@@ -1,3 +1,15 @@
+/* ---------------------------------------------------------------------------
+   Root scale
+   Every size in the app is expressed in rem, so this single value decides how
+   large the UI renders. The design is based on the LB Phone screen
+   (27.6rem x 59rem in the dev frame), so the root font size tracks whichever
+   viewport axis is the tighter fit — a full browser window and a phone-sized
+   NUI frame then render the exact same proportions.
+--------------------------------------------------------------------------- */
+html {
+  font-size: min(3.4vw, 1.66vh);
+}
+
 html,
 body,
 #root {
@@ -14,8 +26,8 @@ body {
 
 /* Global scrollbar override — no track, no arrows, only the thumb */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 0.375rem;
+  height: 0.375rem;
 }
 
 ::-webkit-scrollbar-track,

@@ -152,7 +152,7 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
     <div className={styles.page}>
       <header className={styles.header}>
         <button type='button' className={styles.back} onClick={onBack} aria-label='Go back'>
-          <CaretLeftIcon size={18} weight='bold' />
+          <CaretLeftIcon size='1.125rem' weight='bold' />
         </button>
         {personal ? (
           <BrandMark

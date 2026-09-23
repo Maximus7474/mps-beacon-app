@@ -15,8 +15,8 @@
   align-items: center;
   padding: 2rem $sp-4 $sp-3;
   background: var(--navbar-background);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(1.25rem);
+  -webkit-backdrop-filter: blur(1.25rem);
   border-bottom: 0.5px solid var(--separator-opaque);
   flex-shrink: 0;
 }
@@ -28,12 +28,12 @@
   justify-content: center;
   width: auto;
   height: auto;
-  padding: 4px;
+  padding: 0.25rem;
   border: none;
   border-radius: 0;
   background: transparent;
   color: $blue;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 400;
 
   &:hover {
@@ -49,7 +49,7 @@
   flex: 1;
   min-width: 0;
   text-align: center;
-  font-size: 17px;
+  font-size: 1.0625rem;
   font-weight: 600;
   color: var(--text-primary);
   margin: 0 $sp-4;
@@ -67,7 +67,7 @@
 // Hero header
 .hero {
   padding: $sp-5 $sp-4 $sp-4;
-  margin-bottom: 8px;
+  margin-bottom: 0.5rem;
   box-shadow: var(--card-shadow);
 }
 
@@ -79,13 +79,13 @@
 }
 
 .heroLogo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 1.125rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 38px;
+  font-size: 2.375rem;
   flex-shrink: 0;
   box-shadow: var(--secondary-shadow);
 }
@@ -96,15 +96,15 @@
 }
 
 .heroName {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
-  margin-bottom: 3px;
+  margin-bottom: 0.1875rem;
 }
 
 .heroCategory {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-secondary);
   margin-bottom: $sp-2;
 }
@@ -112,16 +112,16 @@
 .statusPill {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 14px;
+  gap: 0.3125rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  padding: 4px 12px;
+  padding: 0.25rem 0.75rem;
   border-radius: $r-pill;
 
   &::before {
     content: '';
-    width: 7px;
-    height: 7px;
+    width: 0.4375rem;
+    height: 0.4375rem;
     border-radius: 50%;
     background: currentColor;
   }
@@ -134,8 +134,8 @@
 .heroBusy {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 13px;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
   color: $status-busy-text;
   font-weight: 500;
   margin-top: $sp-1;
@@ -144,7 +144,7 @@
 .heroMeta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
   border-top: 0.5px solid var(--separator);
   padding-top: $sp-3;
 }
@@ -154,16 +154,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 0.4375rem;
   width: 100%;
   height: auto;
   margin: $sp-2 0 $sp-3;
-  padding: 11px 0;
+  padding: 0.6875rem 0;
   border: none;
   border-radius: $r-md;
   background: $blue;
   color: #fff;
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   text-transform: none;
   cursor: pointer;
@@ -186,17 +186,17 @@
 }
 
 .metaError {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: $status-closed-text;
   margin-bottom: $sp-2;
 }
 
 .metaLine {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   display: flex;
   align-items: top;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 // Section blocks
@@ -205,7 +205,7 @@
 }
 
 .sectionTitle {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--text-primary);
@@ -218,8 +218,8 @@
   border-radius: $r-lg;
   padding: $sp-4;
   box-shadow: var(--card-shadow);
-  margin-bottom: 10px;
-  border-left: 3px solid $blue;
+  margin-bottom: 0.625rem;
+  border-left: 0.1875rem solid $blue;
 
   &.offer { border-left-color: $green; }
   &.general { border-left-color: var(--separator-opaque); }
@@ -234,18 +234,18 @@
 }
 
 .announcementTitle {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .announcementTime {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
 }
 
 .announcementContent {
-  font-size: 15px;
+  font-size: 0.9375rem;
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -254,7 +254,7 @@
 .postList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .postCard {
@@ -273,17 +273,17 @@
 }
 
 .postTitle {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
   flex: 1;
 }
 
 .postBadge {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.05em;
-  padding: 2px 7px;
+  padding: 0.125rem 0.4375rem;
   border-radius: $r-pill;
   background: $pill-general-bg;
   color: $pill-general-text;
@@ -301,7 +301,7 @@
 }
 
 .postContent {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.5;
   margin-bottom: $sp-2;
@@ -314,7 +314,7 @@
 }
 
 .postType {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 500;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -322,14 +322,14 @@
 }
 
 .postPrice {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
 }
 
 .emptyPosts {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-tertiary);
   text-align: center;
-  padding: 24px 0;
+  padding: 1.5rem 0;
 }

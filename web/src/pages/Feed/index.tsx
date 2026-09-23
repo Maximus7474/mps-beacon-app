@@ -84,7 +84,7 @@ export function AnnouncementFeedPage({ announcements }: AnnouncementFeedProps) {
           ))
         )}
 
-        <div style={{ height: 16 }} />
+        <div style={{ height: '1rem' }} />
       </div>
     </div>
   );

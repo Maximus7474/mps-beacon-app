@@ -184,7 +184,7 @@ export function Dropdown<T extends string>({
         >
           {opt.tone && <span className='dropdown-dot' aria-hidden='true' />}
           <span className='dropdown-label'>{opt.label}</span>
-          {opt.value === value && <CheckIcon size={14} className='dropdown-check' aria-hidden='true' />}
+          {opt.value === value && <CheckIcon size='0.875rem' className='dropdown-check' aria-hidden='true' />}
         </button>
       );
     });
@@ -210,7 +210,7 @@ export function Dropdown<T extends string>({
       >
         {selected?.tone && <span className='dropdown-dot' aria-hidden='true' />}
         <span className='dropdown-label'>{selected?.label ?? ''}</span>
-        <CaretDownIcon size={16} className='dropdown-chevron' aria-hidden='true' />
+        <CaretDownIcon size='1rem' className='dropdown-chevron' aria-hidden='true' />
       </button>
 
       {open && (

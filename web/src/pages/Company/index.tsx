@@ -52,7 +52,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
     <div className={styles.page}>
       <header className={styles.header}>
         <button type='button' className={styles.back} onClick={onBack} aria-label='Go back'>
-          <CaretLeftIcon size={18} weight='bold' />
+          <CaretLeftIcon size='1.125rem' weight='bold' />
         </button>
         <div className={styles.navTitle}>{company.name}</div>
       </header>
@@ -69,7 +69,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
               {/* Consider future implementation to add details here
                 {company.status === 'busy' && (
                 <div className={styles.heroBusy}>
-                  <TimerIcon size={13} weight='fill' />
+                  <TimerIcon size='0.8125rem' weight='fill' />
                   <span>Busy</span>
                 </div>
               )}*/}
@@ -77,7 +77,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
           </div>
           <div className={styles.heroMeta}>
             <button type='button' className={styles.messageButton} onClick={handleMessageCompany} disabled={requesting}>
-              <ChatCircleDotsIcon size={16} weight='fill' />
+              <ChatCircleDotsIcon size='1rem' weight='fill' />
               {requesting ? 'Opening chat…' : 'Message'}
             </button>
             {requestError && <div className={styles.metaError}>{requestError}</div>}
@@ -87,13 +87,13 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
               */}
             {company.address && (
               <div className={styles.metaLine}>
-                <MapPinIcon size={14} weight='fill' />
+                <MapPinIcon size='0.875rem' weight='fill' />
                 {company.address}
               </div>
             )}
             {/* ToDo: add button to implement calling users */}
             <div className={styles.metaLine}>
-              <PhoneIcon size={14} weight='fill' />
+              <PhoneIcon size='0.875rem' weight='fill' />
               {company.phone
                 ? globalThis.formatPhoneNumber(company.phone)
                 : getCompanyVanityPhoneNumber({
@@ -101,7 +101,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
                   })}
             </div>
             <div className={styles.metaLine}>
-              <InfoIcon size={28} weight='fill' />
+              <InfoIcon size='1.75rem' weight='fill' />
               {company.description}
             </div>
           </div>
@@ -155,7 +155,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
           )}
         </div>
 
-        <div style={{ height: 32 }} />
+        <div style={{ height: '2rem' }} />
       </div>
     </div>
   );

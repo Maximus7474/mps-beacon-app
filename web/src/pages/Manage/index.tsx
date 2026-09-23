@@ -215,7 +215,7 @@ export function ManagePage({
                       }}
                       aria-label='Delete'
                     >
-                      <TrashIcon size={16} weight='regular' />
+                      <TrashIcon size='1rem' weight='regular' />
                     </button>
                   </div>
                 ))}
@@ -298,14 +298,14 @@ export function ManagePage({
                       }}
                       aria-label='Delete'
                     >
-                      <TrashIcon size={16} weight='regular' />
+                      <TrashIcon size='1rem' weight='regular' />
                     </button>
                   </div>
                 ))}
               </div>
             )}
 
-            <div style={{ height: 32 }} />
+            <div style={{ height: '2rem' }} />
           </>
         )}
       </div>

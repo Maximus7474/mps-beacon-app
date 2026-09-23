@@ -16,7 +16,7 @@
 }
 
 .title {
-  font-size: 34px;
+  font-size: 2.125rem;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.1;
@@ -73,7 +73,7 @@
 }
 
 .sectionLabel {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-secondary);
   text-transform: uppercase;
@@ -86,7 +86,7 @@
   background: var(--background-secondary);
   border-radius: $r-lg;
   padding: $sp-3 $sp-4;
-  margin-bottom: 10px;
+  margin-bottom: 0.625rem;
   box-shadow: var(--card-shadow);
   display: flex;
   gap: $sp-3;
@@ -94,13 +94,13 @@
 }
 
 .itemLogo {
-  width: 44px;
-  height: 44px;
+  width: 2.75rem;
+  height: 2.75rem;
   border-radius: $r-sm;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
+  font-size: 1.375rem;
   flex-shrink: 0;
 }
 
@@ -113,11 +113,11 @@
   display: flex;
   align-items: center;
   gap: $sp-2;
-  margin-bottom: 3px;
+  margin-bottom: 0.1875rem;
 }
 
 .companyName {
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
@@ -127,10 +127,10 @@
 }
 
 .typePill {
-  font-size: 10px;
+  font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 2px 7px;
+  padding: 0.125rem 0.4375rem;
   border-radius: $r-pill;
   white-space: nowrap;
   flex-shrink: 0;
@@ -141,14 +141,14 @@
 }
 
 .itemTitle {
-  font-size: 15px;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 .itemContent {
-  font-size: 14px;
+  font-size: 0.875rem;
   color: var(--text-secondary);
   line-height: 1.4;
   display: -webkit-box;
@@ -158,14 +158,14 @@
 }
 
 .itemTime {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-tertiary);
-  margin-top: 5px;
+  margin-top: 0.3125rem;
 }
 
 .empty {
   text-align: center;
   color: var(--text-secondary);
-  font-size: 15px;
-  padding: 60px 0;
+  font-size: 0.9375rem;
+  padding: 3.75rem 0;
 }
