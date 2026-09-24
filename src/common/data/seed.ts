@@ -1,5 +1,11 @@
 import type { Announcement, Company } from '../types';
 
+/**
+ * Seed data is authored as "N minutes ago" but the wire format is absolute
+ * (`lastActiveAt` / `createdAt` as Unix ms) so cached payloads never go stale.
+ */
+const ago = (minutes: number) => Date.now() - minutes * 60_000;
+
 export const SEED_COMPANIES: Company[] = [
   {
     id: 'c1',
@@ -10,7 +16,7 @@ export const SEED_COMPANIES: Company[] = [
     iconBg: '#6F4E37',
     tags: ['coffee', 'breakfast', 'wifi', 'pastries'],
     status: 'open',
-    lastActiveMinutes: 2,
+    lastActiveAt: ago(2),
     description:
       'Specialty coffee roasters serving single-origin pour-overs, espresso drinks, and house-baked goods since 2018.',
     address: '42 Maple Street, Downtown',
@@ -53,7 +59,7 @@ export const SEED_COMPANIES: Company[] = [
     iconBg: '#E8647A',
     tags: ['japanese', 'sushi', 'ramen', 'dinner'],
     status: 'busy',
-    lastActiveMinutes: 15,
+    lastActiveAt: ago(15),
     description:
       'Authentic Japanese cuisine in an intimate setting. Our chefs trained in Tokyo bring seasonal omakase and izakaya classics.',
     address: '7 Blossom Lane, Midtown',
@@ -95,7 +101,7 @@ export const SEED_COMPANIES: Company[] = [
     iconBg: '#30B050',
     tags: ['grocery', 'organic', 'deli', 'produce'],
     status: 'open',
-    lastActiveMinutes: 62,
+    lastActiveAt: ago(62),
     description:
       'Your neighborhood grocer stocking local produce, artisan cheeses, craft charcuterie, and everyday essentials.',
     address: '180 Oak Avenue, Westside',
@@ -128,7 +134,7 @@ export const SEED_COMPANIES: Company[] = [
     iconBg: '#C0392B',
     tags: ['chinese', 'dim sum', 'takeout', 'family'],
     status: 'closed',
-    lastActiveMinutes: 185,
+    lastActiveAt: ago(185),
     description:
       'Family-run Cantonese kitchen serving traditional dim sum, roasted meats, and wok-fired classics for 30 years.',
     address: '33 Jade Street, Chinatown',
@@ -161,7 +167,7 @@ export const SEED_COMPANIES: Company[] = [
     iconBg: '#9B59B6',
     tags: ['flowers', 'bouquets', 'events', 'gifts'],
     status: 'open',
-    lastActiveMinutes: 320,
+    lastActiveAt: ago(320),
     description:
       'Studio florist specializing in seasonal arrangements, wedding florals, and same-day delivery across the city.',
     address: '21 Petal Row, Arts District',
@@ -195,7 +201,7 @@ export const SEED_COMPANIES: Company[] = [
     iconBg: '#2C3E50',
     tags: ['barbershop', 'grooming', 'walk-in', 'beard'],
     status: 'closed',
-    lastActiveMinutes: 1440,
+    lastActiveAt: ago(1440),
     description:
       'Classic barbershop with modern technique. Hot towel shaves, tapers, fades, and beard sculpting by experienced barbers.',
     address: '9 Union Square, Central',
@@ -231,7 +237,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     type: 'status',
     title: 'Now Open',
     content: "Good morning! We're open and the first batch of croissants just came out of the oven. Come say hi.",
-    minutesAgo: 120,
+    createdAt: ago(120),
   },
   {
     id: 'a2',
@@ -243,7 +249,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     title: 'Currently Busy',
     content:
       "We're at full capacity right now. Walk-in wait is approximately 40 minutes. Reservations for 7 PM onward are still available.",
-    minutesAgo: 15,
+    createdAt: ago(15),
   },
   {
     id: 'a3',
@@ -254,7 +260,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     type: 'offer',
     title: 'Happy Hour - 20% Off',
     content: 'Every weekday 2-4 PM, enjoy 20% off all specialty drinks. Flash your loyalty card for an extra stamp.',
-    minutesAgo: 45,
+    createdAt: ago(45),
   },
   {
     id: 'a4',
@@ -265,7 +271,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     type: 'offer',
     title: 'Weekend Sale - 30% Off Produce',
     content: "Saturday and Sunday only: 30% off all fresh produce, including this week's farmer's market arrivals.",
-    minutesAgo: 200,
+    createdAt: ago(200),
   },
   {
     id: 'a5',
@@ -277,7 +283,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     title: 'Now Closed',
     content:
       "We've closed for the evening. See you tomorrow from 11 AM for lunch service, and Sunday from 10 AM for dim sum.",
-    minutesAgo: 185,
+    createdAt: ago(185),
   },
   {
     id: 'a6',
@@ -289,7 +295,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     title: 'Wedding Season Bookings Open',
     content:
       'Taking consultations for 2025 weddings. Limited weekend dates remain. DM or call to schedule your floral design session.',
-    minutesAgo: 320,
+    createdAt: ago(320),
   },
   {
     id: 'a7',
@@ -301,7 +307,7 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     title: 'Omakase - Early Bird Discount',
     content:
       "Book the chef's tasting for 6 PM or earlier and receive 15% off the full menu price. Valid this week only.",
-    minutesAgo: 390,
+    createdAt: ago(390),
   },
   {
     id: 'a8',
@@ -312,6 +318,6 @@ export const SEED_ANNOUNCEMENTS: Announcement[] = [
     type: 'general',
     title: 'Extended Hours This Month',
     content: 'Running extended hours through August - open until 8 PM Monday through Friday. No appointment needed.',
-    minutesAgo: 1440,
+    createdAt: ago(1440),
   },
 ];
