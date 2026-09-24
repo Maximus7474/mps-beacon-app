@@ -1,5 +1,7 @@
 import Config from '@common/config';
+import { debuglog } from '@common/debug';
 import { waitForResourceStarted } from '@common/utils';
+import { handleUiClosed, handleUiSync } from './sync';
 
 const lbPhone = 'lb-phone';
 
@@ -53,15 +55,30 @@ const appConfig: AppConfig = {
     : `https://cfx-nui-${GetCurrentResourceName()}/dist/web/icon.png`,
 
   fixBlur: true,
+
+  // The app iframe is created on open and destroyed on close, so the phone's
+  // own lifecycle hooks are the reliable signal for the client cache's
+  // background work (the `beaconapp:client:sync` callback marks the open too).
+  onOpen: () => {
+    debuglog('[beaconapp:init] app onOpen (lb-phone)');
+    void handleUiSync();
+  },
+  onClose: () => {
+    debuglog('[beaconapp:init] app onClose (lb-phone)');
+    handleUiClosed();
+  },
 };
 
 const loadApplication = () => {
+  debuglog(`[beaconapp:init] AddCustomApp for "${appConfig.name}" (ui: ${appConfig.ui})`);
   const response = exports['lb-phone'].AddCustomApp(appConfig) as [boolean, string?];
 
   const added = Array.isArray(response) ? response[0] : response;
 
   if (!added) {
     console.log(`[^1ERROR^7] Unable to add "^5${appConfig.name}^7" to lb-phone: ${response[1]}`);
+  } else {
+    debuglog(`[beaconapp:init] app "${appConfig.name}" registered with lb-phone`);
   }
 };
 

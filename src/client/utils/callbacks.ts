@@ -1,3 +1,4 @@
+import { debuglog } from '@common/debug';
 import type { CallbackResponse } from '@common/types';
 
 type CallbackHandler = (response: any) => void;
@@ -10,6 +11,7 @@ const generateUUID = (): string => {
 };
 
 export const triggerServerCallback = <T = any>(name: string, data?: any): Promise<T> => {
+  debuglog(`[beaconapp:callbacks] -> ${name}`);
   return new Promise((resolve, reject) => {
     const id = generateUUID();
 
@@ -26,7 +28,14 @@ onNet(`${resourceName}:client:callbackResponse`, (requestId: string, response: C
   const cb = pendingCallbacks.get(requestId);
 
   if (cb) {
+    if (response.success) {
+      debuglog(`[beaconapp:callbacks] <- ${requestId} ok`);
+    } else if ('error' in response) {
+      debuglog(`[beaconapp:callbacks] <- ${requestId} error: ${response.error}`);
+    }
     cb(response);
     pendingCallbacks.delete(requestId);
+  } else {
+    debuglog(`[beaconapp:callbacks] <- ${requestId} arrived with no pending handler`);
   }
 });

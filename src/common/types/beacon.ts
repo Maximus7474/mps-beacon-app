@@ -23,7 +23,11 @@ export type Company = {
   image?: string;
   tags: string[];
   status: CompanyStatus;
-  lastActiveMinutes: number;
+  /**
+   * Unix timestamp (ms) of the last status change. Absolute rather than a
+   * pre-computed "minutes ago" so a cached payload cannot go stale.
+   */
+  lastActiveAt: number;
   description: string;
   address?: string;
   coords?: { x: number; y: number };
@@ -41,7 +45,8 @@ export type Announcement = {
   type: AnnouncementType;
   title: string;
   content: string;
-  minutesAgo: number;
+  /** Unix timestamp (ms) the announcement was posted. See `Company.lastActiveAt`. */
+  createdAt: number;
 };
 
 /**
@@ -179,3 +184,38 @@ export type GetOrCreateChannelRequest = {
 export type GetOrCreateChannelResponse =
   | { success: true; channel: Channel; created: boolean }
   | { success: false; message: string };
+
+// Client cache & NUI sync
+
+/** Employee (on-duty) state, resolved from the player's framework active group. */
+export type EmployeeState = {
+  enabled: boolean;
+  companyId: string | null;
+};
+
+/** Cache slice key for a channel list: `personal` or `company:<companyId>`. */
+export type ChannelSliceKey = 'personal' | `company:${string}`;
+
+export const channelSliceKey = (scope: ChannelScope, companyId?: string): ChannelSliceKey =>
+  scope === 'company' ? `company:${companyId ?? ''}` : 'personal';
+
+/**
+ * Everything the NUI needs for its first frame. Built by the client-runtime
+ * cache and handed over by the `beaconapp:client:sync` callback, so an iframe
+ * that was just (re)created hydrates instantly instead of re-querying the
+ * database — including state that was pushed while the app was closed.
+ */
+export type BeaconSnapshot = {
+  /**
+   * Monotonic counter owned by the client cache. The UI records the revision it
+   * hydrated from and ignores any patch that predates it.
+   */
+  revision: number;
+  companies: Company[];
+  announcements: Announcement[];
+  employee: EmployeeState;
+  /** Channel lists keyed by `ChannelSliceKey`; absent until first fetched. */
+  channels: Record<string, Channel[]>;
+};
+
+export type BeaconSyncResponse = BeaconSnapshot;

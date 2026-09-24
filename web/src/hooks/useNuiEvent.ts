@@ -9,9 +9,14 @@ import { type RefObject, useEffect, useRef } from 'react';
 interface NuiMessageData<T = unknown> {
   action: string;
   data: T;
+  /**
+   * Client-cache revision the patch was emitted at. Patches older than the
+   * snapshot the UI hydrated from are discarded.
+   */
+  revision?: number;
 }
 
-type NuiHandlerSignature<T> = (data: T) => void;
+type NuiHandlerSignature<T> = (data: T, message: NuiMessageData<T>) => void;
 
 /**
  * A hook that manage events listeners for receiving data from the client scripts
@@ -25,7 +30,7 @@ type NuiHandlerSignature<T> = (data: T) => void;
  *
  **/
 
-export const useNuiEvent = <T = unknown>(action: string, handler: (data: T) => void) => {
+export const useNuiEvent = <T = unknown>(action: string, handler: NuiHandlerSignature<T>) => {
   const savedHandler: RefObject<NuiHandlerSignature<T>> = useRef(() => {});
 
   // Make sure we handle for a reactive handler
@@ -39,7 +44,7 @@ export const useNuiEvent = <T = unknown>(action: string, handler: (data: T) => v
 
       if (savedHandler.current) {
         if (eventAction === action) {
-          savedHandler.current(data);
+          savedHandler.current(data, event.data);
         }
       }
     };

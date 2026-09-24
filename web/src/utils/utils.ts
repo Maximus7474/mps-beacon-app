@@ -1,5 +1,8 @@
 export const devMode = !window?.['invokeNative'];
 
+export const toRelativeMinutes = (timestamp: number): number =>
+  Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
+
 export function formatRelativeTime(minutes: number): string {
   if (minutes < 1) return 'Just now';
   if (minutes < 60) return `${minutes}m ago`;

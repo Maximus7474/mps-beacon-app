@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { formatRelativeTime } from '~/utils/utils';
+import { formatRelativeTime, toRelativeMinutes } from '~/utils/utils';
 import type { Company } from '@common/types';
 import { BrandMark } from '~/components/BrandMark';
 import styles from './index.module.scss';
@@ -15,13 +15,13 @@ export function HomePage({ companies, onSelectCompany }: HomePageProps) {
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
-    if (!q) return [...companies].sort((a, b) => a.lastActiveMinutes - b.lastActiveMinutes);
+    if (!q) return [...companies].sort((a, b) => b.lastActiveAt - a.lastActiveAt);
     return companies
       .filter(
         (c) =>
           c.name.toLowerCase().includes(q) || c.category.toLowerCase().includes(q) || c.tags.some((t) => t.includes(q)),
       )
-      .sort((a, b) => a.lastActiveMinutes - b.lastActiveMinutes);
+      .sort((a, b) => b.lastActiveAt - a.lastActiveAt);
   }, [query, companies]);
 
   return (
@@ -76,7 +76,7 @@ function CompanyCard({ company, onClick }: { company: Company; onClick: () => vo
             <span className={`${styles.statusBadge} ${styles[company.status]}`}>
               {company.status === 'open' ? 'Open' : company.status === 'busy' ? 'Busy' : 'Closed'}
             </span>
-            <span className={styles.lastActive}>{formatRelativeTime(company.lastActiveMinutes)}</span>
+            <span className={styles.lastActive}>{formatRelativeTime(toRelativeMinutes(company.lastActiveAt))}</span>
           </div>
         </div>
         <CaretRightIcon className={styles.chevron} size='1rem' />

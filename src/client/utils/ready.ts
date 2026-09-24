@@ -1,8 +1,10 @@
-import { sleep } from "@common/utils";
+import { debuglog } from '@common/debug';
+import { sleep } from '@common/utils';
 
 let ready = false;
 
 on('beaconapp:client:ready', () => {
+  debuglog('[beaconapp:ready] bridge ready event received');
   ready = true;
 });
 
@@ -16,5 +18,7 @@ export const waitForClientReady = async (timeoutMs = 30000): Promise<void> => {
 
   if (!ready) {
     console.warn('[beaconapp] bridge ready event not received in time, continuing anyway');
+  } else {
+    debuglog('[beaconapp:ready] bridge ready confirmed');
   }
 };

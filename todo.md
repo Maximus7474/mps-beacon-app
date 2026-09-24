@@ -1,0 +1,12 @@
+- [ ] Chore: Implement debuglog function across the app for easier debugging toggling
+- [ ] Feat: Implement notification system (using lb-phone exports)
+  - [ ] All player announcement (open/close/announcement - configurable)
+  - [ ] Employees (message reception)
+- [ ] Feat: Localization
+- [x] Fix: web app scaling issues, use relative measures
+- [x] Fix: updating settings does not update them if the app is already open
+  - [x] Changing status does not update it in the manage view or home view
+  - [x] Adding announcements does not add them to the feed
+  - [x] Deleting an announcement from the manage view does not remove it from the page (does remove from the DB)
+  - Root cause: lb-phone custom-app iframes never receive `SendNUIMessage`; pushes now go through `SendCustomAppMessage` (sync.ts `SendNUIMessage`). Also: slice revalidations now announce hydrate pushes (cache.ts) so changes made by others reach an already-open app.
+- [ ] Fix: selecting a messaging channel fails to load the channel, not allowing the user to send messages

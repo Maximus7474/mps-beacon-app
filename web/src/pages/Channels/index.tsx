@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '~/components/BrandMark';
 import { useBeacon } from '~/hooks/useBeacon';
 import { fetchNui } from '~/utils/fetchNui';
-import { devMode, formatRelativeTime } from '~/utils/utils';
+import { devMode, formatRelativeTime, toRelativeMinutes } from '~/utils/utils';
 import styles from './index.module.scss';
 
 type Tab = Exclude<ChannelScope, never>;
@@ -15,8 +15,6 @@ const TAB_SCOPES: Record<Tab, ChannelScope> = { personal: 'personal', company: '
 // Page size for progressive scrolling — the backend will eventually accept
 // offset/limit so oversized channel queries are avoided.
 const PAGE_SIZE = 12;
-
-const toRelativeMinutes = (timestamp: number) => Math.max(0, Math.round((Date.now() - timestamp) / 60_000));
 
 interface ChannelsPageProps {
   /** ToDo: wire to the channel-history page once it exists. */

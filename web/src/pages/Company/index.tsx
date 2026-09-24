@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BrandMark } from '~/components/BrandMark';
 import { requestChannel } from '~/utils/channel';
-import { formatRelativeTime, getCompanyVanityPhoneNumber } from '~/utils/utils';
+import { formatRelativeTime, getCompanyVanityPhoneNumber, toRelativeMinutes } from '~/utils/utils';
 import styles from './index.module.scss';
 
 interface CompanyPageProps {
@@ -20,7 +20,7 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
 
   const latestAnnouncement = announcements
     .filter((a) => a.companyId === company.id)
-    .sort((a, b) => a.minutesAgo - b.minutesAgo)[0];
+    .sort((a, b) => b.createdAt - a.createdAt)[0];
 
   const statusLabel = company.status === 'open' ? 'Open Now' : company.status === 'busy' ? 'Busy' : 'Closed';
 
@@ -114,7 +114,9 @@ export function CompanyPage({ company, announcements, onBack }: CompanyPageProps
             <div className={`${styles.announcementCard} ${styles[latestAnnouncement.type]}`}>
               <div className={styles.announcementHeader}>
                 <div className={styles.announcementTitle}>{latestAnnouncement.title}</div>
-                <div className={styles.announcementTime}>{formatRelativeTime(latestAnnouncement.minutesAgo)}</div>
+                <div className={styles.announcementTime}>
+                  {formatRelativeTime(toRelativeMinutes(latestAnnouncement.createdAt))}
+                </div>
               </div>
               <div className={styles.announcementContent}>{latestAnnouncement.content}</div>
             </div>

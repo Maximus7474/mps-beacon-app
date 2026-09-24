@@ -79,7 +79,7 @@ export const getAllPosts = (): Promise<PostRow[]> =>
  * - `company` scope row:  what the employees see (keyed to the company).
  *
  * Both carry the same last-message/unread state, updated together.
-*/
+ */
 
 /** Deterministic ids keep the get-or-create race-free: the unique key does the dedupe. */
 export const buildChannelId = (scope: 'personal' | 'company', companyId: string, phoneNumber: string): string =>

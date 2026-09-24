@@ -1,4 +1,6 @@
 import config from '../common/config';
+import { debuglog } from '../common/debug';
+import { isDebugEnabled } from '../common/debug';
 import type {
   AddAnnouncementPayload,
   AddPostRequest,
@@ -28,25 +30,18 @@ import * as db from './db';
 import { getPlayerName, getPlayerPhoneNumber, hasJob } from './players';
 import { RegisterServerCallback } from './utils/callbacks';
 
-// ---------------------------------------------------------------------------
 // Static data & runtime state
-//
-// Company profiles come from `static/companies.json`. Mutable runtime state —
-// open/busy/closed plus the "last active" clock — stays in server memory and
-// resets on restart by design. Everything else lives in MariaDB via db.ts.
-// ---------------------------------------------------------------------------
 
 const staticCompanies = LoadJsonFile<StaticCompany[]>('static/companies.json');
 
 /** Current open/busy/closed per company; only holds statuses that deviate. */
 const statusOverrides = new Map<string, CompanyStatus>();
-/** Timestamp (ms) of the last status change per company. */
-const lastActiveAt = new Map<string, number>();
 
 const companies: Company[] = staticCompanies.map((company) => ({
   ...company,
   status: 'closed' as CompanyStatus,
-  lastActiveMinutes: 0,
+  // Untouched companies read as "just now", matching the old minutes: 0.
+  lastActiveAt: Date.now(),
   posts: [] as Post[],
 }));
 
@@ -58,6 +53,16 @@ const CLOSED_STATUSES: CompanyStatus[] = ['closed'];
 
 const fail = (message: string): BasicResponse => ({ success: false, message });
 
+/**
+ * Broadcast a state change to every client. Centralised so the debug log shows
+ * exactly what was emitted and when — a missing notification usually means this
+ * line never fired (the write failed upstream) rather than a client problem.
+ */
+const broadcast = (event: string, payload: unknown): void => {
+  debuglog(`[beaconapp:server] emit ${event} -> -1`, payload);
+  emitNet(event, -1, payload);
+};
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -66,14 +71,7 @@ function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
 }
 
-// ---------------------------------------------------------------------------
 // Validation & authorization
-//
-// Every mutating callback funnels through a `validate*` function that returns
-// either an allowed, normalized payload (`ok: true`) or a denial response
-// (`ok: false`). This is the single place to approve or deny an action — add
-// or tighten rules here without touching the mutation/broadcast code below.
-// ---------------------------------------------------------------------------
 
 type Validation<T> = { ok: true; value: T } | { ok: false; response: BasicResponse };
 
@@ -82,8 +80,14 @@ const deny = (message: string): Validation<never> => ({ ok: false, response: fai
 
 /** Company must exist and the caller must hold the matching ox group. */
 const authorize = (src: number, company: Company | undefined): Validation<Company> => {
-  if (!company) return deny('Company not found');
-  if (!hasJob(src, company.job)) return deny('Not authorised');
+  if (!company) {
+    debuglog(`[beaconapp:server] denied src=${src}: company not found`);
+    return deny('Company not found');
+  }
+  if (!hasJob(src, company.job)) {
+    debuglog(`[beaconapp:server] denied src=${src}: not authorised for "${company.id}" (job "${company.job}")`);
+    return deny('Not authorised');
+  }
   return allow(company);
 };
 
@@ -164,9 +168,7 @@ const validateSetCompanyStatus = (
   return allow({ company: auth.value, status: data.status });
 };
 
-// ---------------------------------------------------------------------------
 // Messaging helpers
-// ---------------------------------------------------------------------------
 
 /** The viewer's phone number. ToDo: confirm lb-phone's export name/shape. */
 const getViewerPhone = (src: number): string | null => {
@@ -220,14 +222,16 @@ const isCompanyReachable = (company: Company | undefined): company is Company =>
   return true;
 };
 
-// ---------------------------------------------------------------------------
-// Callbacks — companies, announcements, posts
-// ---------------------------------------------------------------------------
+// Callbacks
 
-RegisterServerCallback<Company[]>('beaconapp:getcompanies', async () => companies);
+RegisterServerCallback<Company[]>('beaconapp:getcompanies', async () => {
+  debuglog(`[beaconapp:server] getcompanies -> ${companies.length} companies (memory)`);
+  return companies;
+});
 
 RegisterServerCallback<Announcement[]>('beaconapp:getannouncements', async () => {
   const rows = await db.getAnnouncements();
+  debuglog(`[beaconapp:server] getannouncements -> ${rows.length} rows (db)`);
 
   // ToDo (perf): hydrate branding with a single JOIN instead of a lookup per row.
   return rows.map<Announcement>((row) => {
@@ -242,7 +246,8 @@ RegisterServerCallback<Announcement[]>('beaconapp:getannouncements', async () =>
       type: row.type,
       title: row.title,
       content: row.content,
-      minutesAgo: Math.floor((Date.now() - row.created_at) / 60000),
+      // Absolute, so a client holding this in its cache never ages it wrongly.
+      createdAt: row.created_at,
     };
   });
 });
@@ -281,9 +286,10 @@ RegisterServerCallback<BasicResponse>('beaconapp:addannouncement', async (src, d
     type,
     title,
     content,
-    minutesAgo: 0,
+    createdAt: row.created_at,
   };
-  emitNet('beaconapp:client:updateannouncement', src, announcement);
+
+  broadcast('beaconapp:client:updateannouncement', announcement);
   return { success: true };
 });
 
@@ -292,7 +298,7 @@ RegisterServerCallback<BasicResponse>('beaconapp:deleteannouncement', async (src
   if (validation.ok === false) return validation.response;
 
   await db.deleteAnnouncement(validation.value);
-  emitNet('beaconapp:client:removeannouncement', src, { id: validation.value });
+  broadcast('beaconapp:client:removeannouncement', { id: validation.value });
   return { success: true };
 });
 
@@ -312,7 +318,12 @@ RegisterServerCallback<BasicResponse>('beaconapp:addpost', async (src, data: Add
     created_at: post.timestamp,
   });
 
-  emitNet('beaconapp:client:updatecompany', src, company);
+  // Keep server memory consistent with the write so the broadcast actually
+  // carries the new post instead of announcing a no-op.
+  // ToDo (perf): hydrate posts from the DB on boot (`db.getAllPosts`).
+  company.posts = [post, ...company.posts];
+
+  broadcast('beaconapp:client:updatecompany', company);
   return { success: true };
 });
 
@@ -322,8 +333,9 @@ RegisterServerCallback<BasicResponse>('beaconapp:deletepost', async (src, data: 
 
   const { company, postId } = validation.value;
   await db.deletePost(company.id, postId);
+  company.posts = company.posts.filter((post) => post.id !== postId);
 
-  emitNet('beaconapp:client:updatecompany', src, company);
+  broadcast('beaconapp:client:updatecompany', company);
   return { success: true };
 });
 
@@ -333,17 +345,15 @@ RegisterServerCallback<BasicResponse>('beaconapp:setcompanystatus', async (src, 
 
   const { company, status } = validation.value;
   statusOverrides.set(company.id, status);
-  lastActiveAt.set(company.id, Date.now());
   company.status = status;
-  company.lastActiveMinutes = 0;
+  company.lastActiveAt = Date.now();
 
-  emitNet('beaconapp:client:updatecompany', src, company);
+  debuglog(`[beaconapp:server] setcompanystatus "${company.id}" -> ${status}`);
+  broadcast('beaconapp:client:updatecompany', company);
   return { success: true };
 });
 
-// ---------------------------------------------------------------------------
-// Callbacks — messaging (personal & company channels)
-// ---------------------------------------------------------------------------
+// Callbacks — messaging
 
 RegisterServerCallback<Channel[]>('beaconapp:getchannels', async (src, data: GetChannelsRequest) => {
   if (!isRecord(data) || (data.scope !== 'personal' && data.scope !== 'company')) return [];
@@ -354,6 +364,7 @@ RegisterServerCallback<Channel[]>('beaconapp:getchannels', async (src, data: Get
       ? await db.getChannelsByPhone(getViewerPhone(src) ?? '')
       : await db.getChannelsByCompany(data.companyId);
 
+  debuglog(`[beaconapp:server] getchannels (${data.scope}) -> ${rows.length} rows (db)`);
   return rows.map(toChannel);
 });
 
@@ -372,6 +383,7 @@ RegisterServerCallback<Message[]>('beaconapp:getmessages', async (src, data: Get
   // ToDo (auth): for `company` scope, verify the viewer actually works at the channel's company.
 
   const rows = await db.getMessages(data.channelId, limit, offset);
+  debuglog(`[beaconapp:server] getmessages "${data.channelId}" -> ${rows.length} rows (db)`);
   return rows.map(toMessage);
 });
 
@@ -394,6 +406,7 @@ RegisterServerCallback<GetOrCreateChannelResponse>(
     // `last_message_at` means this contact is brand-new.
     const created = row.last_message_at === 0;
 
+    debuglog(`[beaconapp:server] getorcreatechannel "${company.id}" -> ${created ? 'created' : 'existing'}`);
     return { success: true, channel: toChannel(row), created };
   },
 );
@@ -440,6 +453,7 @@ RegisterServerCallback<SendMessageResponse>('beaconapp:sendmessage', async (src,
 
   // ToDo (unread): increment the other half's unread_count on send and reset
   // it when that viewer fetches the channel, instead of leaving both at 0.
+  debuglog(`[beaconapp:server] sendmessage "${data.channelId}" by ${author}`);
 
   return {
     success: true,
@@ -455,14 +469,22 @@ RegisterServerCallback<SendMessageResponse>('beaconapp:sendmessage', async (src,
   };
 });
 
-// ---------------------------------------------------------------------------
 // Bootstrap
-// ---------------------------------------------------------------------------
+
+// Debug logging is owned by the replicated `beaconapp:debug` convar. A player
+// toggling it in the dev panel flips it for the whole server on purpose — the
+// gate is a server-wide switch, not a per-player one.
+onNet('beaconapp:server:debugtoggle', () => {
+  const next = !isDebugEnabled();
+  SetConvarReplicated('beaconapp:debug', next ? '1' : '0');
+  debuglog(`[beaconapp:server] debugtoggle -> beaconapp:debug ${next ? 1 : 0}`);
+});
 
 setImmediate(async () => {
   try {
     await db.waitForDatabase();
     console.log('[beaconapp] database connection ready');
+    debuglog('[beaconapp:server] bootstrap complete');
   } catch (err) {
     console.error('[beaconapp] database connection failed', err);
   }

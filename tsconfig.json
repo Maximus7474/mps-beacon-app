@@ -8,6 +8,11 @@
     "allowUnreachableCode": false,
     "strictFunctionTypes": true,
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./*"],
+      "@common/*": ["./src/common/*"]
+    },
     "noImplicitAny": true,
     "noImplicitThis": true,
     "noUnusedLocals": true,

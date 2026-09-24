@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { formatRelativeTime } from '~/utils/utils';
+import { formatRelativeTime, toRelativeMinutes } from '~/utils/utils';
 import type { Announcement, AnnouncementType } from '@common/types';
 import { BrandMark } from '~/components/BrandMark';
 import styles from './index.module.scss';
@@ -27,7 +27,7 @@ export function AnnouncementFeedPage({ announcements }: AnnouncementFeedProps) {
   const [filter, setFilter] = useState<Filter>('all');
 
   const sorted = useMemo(() => {
-    const base = [...announcements].sort((a, b) => a.minutesAgo - b.minutesAgo);
+    const base = [...announcements].sort((a, b) => b.createdAt - a.createdAt);
     if (filter === 'all') return base;
     return base.filter((a) => a.type === filter);
   }, [filter, announcements]);
@@ -78,7 +78,7 @@ export function AnnouncementFeedPage({ announcements }: AnnouncementFeedProps) {
                 </div>
                 <div className={styles.itemTitle}>{ann.title}</div>
                 <div className={styles.itemContent}>{ann.content}</div>
-                <div className={styles.itemTime}>{formatRelativeTime(ann.minutesAgo)}</div>
+                <div className={styles.itemTime}>{formatRelativeTime(toRelativeMinutes(ann.createdAt))}</div>
               </div>
             </div>
           ))
