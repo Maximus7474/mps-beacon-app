@@ -45,8 +45,6 @@ const pushToNui = (message: Record<string, unknown>): void => {
       | true
       | [false, string | undefined];
 
-    console.log('pushToNui resp', resp);
-
     const [ok, err] = Array.isArray(resp) ? resp : [true, undefined];
 
     if (!ok) debuglog(`[beaconapp:sync] SendCustomAppMessage failed: ${err ?? 'unknown error'}`);
