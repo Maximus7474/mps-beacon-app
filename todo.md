@@ -1,4 +1,4 @@
-- [ ] Chore: Implement debuglog function across the app for easier debugging toggling
+- [x] Chore: Implement debuglog function across the app for easier debugging toggling
 - [ ] Feat: Implement notification system (using lb-phone exports)
   - [ ] All player announcement (open/close/announcement - configurable)
   - [ ] Employees (message reception)
@@ -9,4 +9,5 @@
   - [x] Adding announcements does not add them to the feed
   - [x] Deleting an announcement from the manage view does not remove it from the page (does remove from the DB)
   - Root cause: lb-phone custom-app iframes never receive `SendNUIMessage`; pushes now go through `SendCustomAppMessage` (sync.ts `SendNUIMessage`). Also: slice revalidations now announce hydrate pushes (cache.ts) so changes made by others reach an already-open app.
-- [ ] Fix: selecting a messaging channel fails to load the channel, not allowing the user to send messages
+- [x] Fix: selecting a messaging channel fails to load the channel, not allowing the user to send messages
+  - Root cause: ChannelRoute could only resolve dev seed ids (`dev-*`/seeds), so real channel ids (`<scope>:<companyId>:<phone>`) redirected back to the list. Now resolved via the new cache-served `beaconapp:getchannel` callback; sends also reconcile against the server response (failed sends no longer leave a phantom bubble).

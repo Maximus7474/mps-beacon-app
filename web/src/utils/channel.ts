@@ -1,10 +1,12 @@
+import { SEED_CHANNELS } from '@common/data/channels';
 import type { Company, GetOrCreateChannelResponse } from '@common/types';
 import { fetchNui } from '~/utils/fetchNui';
 import { devMode } from '~/utils/utils';
 
 /**
- * Dev stub: fabricates a deterministic channel (`dev-<companyId>`) when the
- * NUI round-trip is unavailable, so the flow stays testable in the browser.
+ * Dev stub: when the NUI round-trip is unavailable, resolves the company's
+ * seeded conversation (compound id `<companyId>:<phone>`) so the dev Message
+ * button opens the same thread the backend would have created/found.
  */
 export async function requestChannel(
   company: Pick<Company, 'id' | 'name' | 'icon' | 'iconBg' | 'image' | 'phone'>,
@@ -13,23 +15,30 @@ export async function requestChannel(
     'beaconapp:getorcreatechannel',
     { companyId: company.id },
     devMode
-      ? {
-          success: true,
-          created: !sessionStorage.getItem(`beaconapp:channel:${company.id}`),
-          channel: {
-            id: `dev-${company.id}`,
-            scope: 'personal',
-            companyId: company.id,
-            companyName: company.name,
-            companyIcon: company.icon,
-            companyIconBg: company.iconBg,
-            companyImage: company.image,
-            phoneNumber: company.phone,
-            lastMessagePreview: 'No messages yet',
-            lastMessageAt: Date.now(),
-            unreadCount: 0,
-          },
-        }
+      ? (() => {
+          // Prefer the seeded personal conversation for this company; fall back
+          // to fabricating one when the seed has no phone for the company.
+          const seeded = SEED_CHANNELS.find((c) => c.scope === 'personal' && c.companyId === company.id);
+          const phone = company.phone ?? '5550000000';
+
+          return {
+            success: true,
+            created: !sessionStorage.getItem(`beaconapp:channel:${company.id}`),
+            channel: {
+              id: seeded ? seeded.id : `${company.id}:${phone}`,
+              scope: 'personal',
+              companyId: company.id,
+              companyName: company.name,
+              companyIcon: company.icon,
+              companyIconBg: company.iconBg,
+              companyImage: company.image,
+              phoneNumber: company.phone,
+              lastMessagePreview: seeded ? seeded.lastMessagePreview : 'No messages yet',
+              lastMessageAt: seeded ? seeded.lastMessageAt : Date.now(),
+              unreadCount: seeded ? seeded.unreadCount : 0,
+            },
+          };
+        })()
       : undefined,
   );
 

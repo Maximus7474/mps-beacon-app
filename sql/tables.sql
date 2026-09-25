@@ -26,21 +26,21 @@ CREATE TABLE IF NOT EXISTS `beacon_posts` (
 
 CREATE TABLE IF NOT EXISTS `beacon_channels` (
   `id` VARCHAR(64) NOT NULL,
-  `scope` ENUM('personal', 'company') NOT NULL,
   `company_id` VARCHAR(40) NOT NULL,
   `phone_number` VARCHAR(15) NOT NULL DEFAULT '',
   `last_message_preview` VARCHAR(120) NOT NULL DEFAULT '',
   `last_message_at` BIGINT UNSIGNED NOT NULL DEFAULT 0,
-  `unread_count` INT UNSIGNED NOT NULL DEFAULT 0,
+  `unread_user` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+  `unread_company` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `beacon_channels_conversation` (`scope`, `company_id`, `phone_number`),
+  UNIQUE KEY `beacon_channels_conversation` (`company_id`, `phone_number`),
   KEY `beacon_channels_recent` (`last_message_at`)
 );
 
 CREATE TABLE IF NOT EXISTS `beacon_messages` (
-  `id` VARCHAR(64) NOT NULL,
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `channel_id` VARCHAR(64) NOT NULL,
-  `author` ENUM('user', 'employee') DEFAULT NULL,
+  `author` ENUM('user', 'employee') NOT NULL,
   `sent_by` VARCHAR(64) DEFAULT NULL,
   `content` VARCHAR(400) NOT NULL,
   `created_at` BIGINT UNSIGNED NOT NULL,

@@ -4,6 +4,7 @@ import { PhoneIcon } from '@phosphor-icons/react/dist/ssr';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '~/components/BrandMark';
 import { useBeacon } from '~/hooks/useBeacon';
+import { useNuiEvent } from '~/hooks/useNuiEvent';
 import { fetchNui } from '~/utils/fetchNui';
 import { devMode, formatRelativeTime, toRelativeMinutes } from '~/utils/utils';
 import styles from './index.module.scss';
@@ -64,6 +65,15 @@ export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
       cancelled = true;
     };
   }, [scope, companyId]);
+
+  useNuiEvent('beaconapp:hydrate', () => {
+    void fetchNui<Channel[]>('beaconapp:getchannels', { scope, companyId, offset: 0, limit: PAGE_SIZE }).then(
+      (rows) => {
+        setChannels([...rows].sort((a, b) => b.lastMessageAt - a.lastMessageAt));
+        setVisibleCount((current) => Math.max(current, PAGE_SIZE));
+      },
+    );
+  });
 
   // Progressive scrolling: render in pages and grow as the sentinel scrolls
   // into view, so a long history never lands in the DOM at once.

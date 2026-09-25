@@ -4,14 +4,14 @@ const minutesAgo = (minutes: number) => Date.now() - minutes * 60_000;
 
 /**
  * Dev-mode fallback for the channels page (see SEED_COMPANIES / SEED_ANNOUNCEMENTS).
- * Personal channels are the player's conversations with companies; company
- * channels are customers messaging the business account. Replaced by the
- * backend once the DB schema and queries exist.
+ * Ids are the compound conversation keys used by the backend
+ * (`<companyId>:<phone>`); the same conversation appears in both the
+ * personal and the company list, seen from each side's perspective.
  */
 export const SEED_CHANNELS: Channel[] = [
-  // --- Personal scope: conversations with companies -------------------------
+  // --- Personal perspective: conversations with companies -------------------
   {
-    id: 'ch-p1',
+    id: 'c1:5550123456',
     scope: 'personal',
     companyId: 'c1',
     companyName: 'The Roasted Bean',
@@ -23,7 +23,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 2,
   },
   {
-    id: 'ch-p2',
+    id: 'c2:5552345678',
     scope: 'personal',
     companyId: 'c2',
     companyName: 'Sakura Kitchen',
@@ -35,7 +35,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 0,
   },
   {
-    id: 'ch-p3',
+    id: 'c3:5553456789',
     scope: 'personal',
     companyId: 'c3',
     companyName: 'FreshMart',
@@ -47,7 +47,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 1,
   },
   {
-    id: 'ch-p4',
+    id: 'c4:5554567890',
     scope: 'personal',
     companyId: 'c4',
     companyName: 'Golden Dragon',
@@ -59,7 +59,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 0,
   },
   {
-    id: 'ch-p5',
+    id: 'c5:5555678901',
     scope: 'personal',
     companyId: 'c5',
     companyName: 'Bloom & Co.',
@@ -71,7 +71,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 0,
   },
   {
-    id: 'ch-p6',
+    id: 'c6:5556789012',
     scope: 'personal',
     companyId: 'c6',
     companyName: 'City Cuts',
@@ -83,9 +83,9 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 0,
   },
 
-  // --- Company scope: customers messaging the business ----------------------
+  // --- Company perspective: the same conversations, seen by employees -------
   {
-    id: 'ch-c1',
+    id: 'c1:5557651234',
     scope: 'company',
     companyId: 'c1',
     phoneNumber: '5557651234',
@@ -94,7 +94,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 2,
   },
   {
-    id: 'ch-c2',
+    id: 'c1:5559876543',
     scope: 'company',
     companyId: 'c1',
     phoneNumber: '5559876543',
@@ -103,7 +103,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 0,
   },
   {
-    id: 'ch-c3',
+    id: 'c1:5553217890',
     scope: 'company',
     companyId: 'c1',
     phoneNumber: '5553217890',
@@ -112,7 +112,7 @@ export const SEED_CHANNELS: Channel[] = [
     unreadCount: 1,
   },
   {
-    id: 'ch-c4',
+    id: 'c2:5551112222',
     scope: 'company',
     companyId: 'c2',
     phoneNumber: '5551112222',

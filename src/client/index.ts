@@ -20,7 +20,15 @@ import type {
   UpdateCompanyStatusRequest,
 } from '../common/types';
 import { channelSliceKey } from '../common/types';
-import { ensureFresh, getAnnouncements, getChannels, getCompanies, invalidateChannels } from './cache';
+import {
+  ensureFresh,
+  getAnnouncements,
+  getChannelById,
+  getChannels,
+  getCompanies,
+  getEmployee,
+  invalidateChannels,
+} from './cache';
 import { handleUiClosed, handleUiSync, initBeaconSync } from './sync';
 import { triggerServerCallback } from './utils/callbacks';
 import { waitForClientReady } from './utils/ready';
@@ -47,14 +55,15 @@ const register = <T>(name: string, handler: (data: any) => Promise<T>, onError: 
 };
 
 /**
- * Channel ids are deterministic (`<scope>:<companyId>:<phone>`), so the scope
- * of a conversation can be read straight off the id.
+ * One conversation row serves both sides, so a change to it invalidates both
+ * lists the viewer might have rendered it in. Channel ids are the compound
+ * conversation key (`<companyId>:<phone>`).
  */
 const invalidateChannelsFor = (channelId?: string): void => {
-  const [scope, companyId] = typeof channelId === 'string' ? channelId.split(':') : [];
+  const companyId = typeof channelId === 'string' ? channelId.split(':')[0] : undefined;
 
-  if (scope === 'company' && companyId) invalidateChannels('company', companyId);
-  else invalidateChannels('personal');
+  invalidateChannels('personal');
+  if (companyId) invalidateChannels('company', companyId);
 };
 
 // Reads
@@ -90,6 +99,33 @@ register<Channel[]>(
   [],
 );
 
+/**
+ * Resolves one conversation by its compound id (`<companyId>:<phone>`).
+ * The stored row serves both sides, so both cached slices are revalidated
+ * and searched; the returned `scope` reflects the viewer's perspective.
+ * Used by the conversation route, which only receives an id in the URL.
+ */
+register<Channel | null>(
+  'beaconapp:getchannel',
+  async (data: { id?: string }) => {
+    if (typeof data?.id !== 'string' || !data.id) return null;
+
+    const companyId = data.id.split(':')[0];
+    if (!companyId) return null;
+
+    await ensureFresh('personal', channelSliceKey('company', companyId));
+    const channel = getChannelById(data.id);
+    if (!channel) return null;
+
+    // Perspective: an on-duty employee of the company views it as the business.
+    const employee = getEmployee();
+    return employee.enabled && employee.companyId === channel.companyId
+      ? { ...channel, scope: 'company' as const }
+      : { ...channel, scope: 'personal' as const };
+  },
+  null,
+);
+
 register<GetOrCreateChannelResponse>(
   'beaconapp:getorcreatechannel',
   async (data: GetOrCreateChannelRequest) => {
@@ -108,9 +144,14 @@ register<SendMessageResponse>(
   async (data: SendMessageRequest) => {
     const response = await triggerServerCallback<SendMessageResponse>('beaconapp:sendmessage', data);
 
-    // There is no message push event yet, so the preview/time of the affected
-    // list has to be re-read rather than patched.
-    if (response.success) invalidateChannelsFor(data?.channelId);
+    // The sender's own lists must reflect the new preview/time at once: drop
+    // the affected slices and refetch them in the background, which lands as a
+    // hydrate push and refreshes any open list or thread.
+    if (response.success) {
+      invalidateChannelsFor(data?.channelId);
+      const companyId = typeof data?.channelId === 'string' ? data.channelId.split(':')[0] : undefined;
+      void ensureFresh('personal', ...(companyId ? ([channelSliceKey('company', companyId)] as const) : []));
+    }
 
     return response;
   },
@@ -167,14 +208,5 @@ RegisterNuiCallback('beaconapp:client:sync', async (_data: unknown, cb: (result:
 RegisterNuiCallback('beaconapp:client:uiclosed', (_data: unknown, cb: (result: string) => void) => {
   debuglog("[beaconapp:nui] callback 'beaconapp:client:uiclosed'");
   handleUiClosed();
-  cb('ok');
-});
-
-// Flips the `beaconapp:debug` convar from the dev panel. The convar is owned
-// by the server and replicated down, so both sides' AddConvarChangeListener
-// fire and the web app receives `debugupdate` — one toggle drives every log.
-RegisterNuiCallback('beaconapp:client:debugtoggle', (_data: unknown, cb: (result: string) => void) => {
-  debuglog(`[beaconapp:nui] debugtoggle (currently ${isDebugEnabled() ? 'on' : 'off'}) -> asking server to flip`);
-  emitNet('beaconapp:server:debugtoggle');
   cb('ok');
 });

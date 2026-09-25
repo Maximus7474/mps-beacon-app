@@ -1,5 +1,6 @@
 import { SEED_CHANNELS } from '@common/data/channels';
-import { type ReactNode, useEffect } from 'react';
+import type { Channel } from '@common/types';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import PageLayout from './components/PageLayout';
 import Frame from './components/dev/Frame';
@@ -7,6 +8,7 @@ import ThemeToggler from './components/dev/Theming';
 import { BeaconProvider } from './contexts/BeaconProvider';
 import { useBeacon } from './hooks/useBeacon';
 import { AnnouncementFeedPage, ChannelPage, ChannelsPage, CompanyPage, HomePage, ManagePage } from './pages';
+import { fetchNui } from './utils/fetchNui';
 
 import './App.scss';
 
@@ -88,52 +90,62 @@ const ChannelsRoute = () => {
 };
 
 /**
- * Resolves the :channelId URL param to a channel and renders the
- * conversation. In dev the id resolves against SEED_CHANNELS or a channel
- * created through the Company page's Message button; in-game the fetched
- * channel set will be available from the provider instead.
+ * Resolves the :channelId URL param to a conversation and renders it. Ids are
+ * the compound conversation key (`<companyId>:<phone>`); real ones resolve
+ * through the client runtime (`beaconapp:getchannel`), which revalidates the
+ * cached slices the conversation appears in. In dev, seed ids resolve locally.
  */
 const ChannelRoute = () => {
   const { channelId } = useParams();
   const navigate = useNavigate();
-  const { employeeMode, employeeCompanyId, companies } = useBeacon();
+  const { employeeMode, employeeCompanyId } = useBeacon();
+  const [resolved, setResolved] = useState<Channel | null>(null);
+  const [missing, setMissing] = useState(false);
+
+  // Seed ids resolve below from local data, so the round-trip is skipped.
+  const isDevId = Boolean(devMode && channelId && SEED_CHANNELS.some((c) => c.id === channelId));
+
+  useEffect(() => {
+    if (!channelId || isDevId) return;
+    let cancelled = false;
+
+    setResolved(null);
+    setMissing(false);
+
+    fetchNui<Channel | null>('beaconapp:getchannel', { id: channelId })
+      .then((channel) => {
+        if (cancelled) return;
+        if (channel) setResolved(channel);
+        else setMissing(true);
+      })
+      .catch(() => {
+        if (!cancelled) setMissing(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [channelId, isDevId]);
 
   if (!channelId) return <Navigate to='/channels' replace />;
 
-  // ToDo: replace with provider-sourced channels once the backend supplies them.
-  let channel = devMode ? SEED_CHANNELS.find((c) => c.id === channelId) : undefined;
+  // Dev: the conversation is one of the seeded ones.
+  const channel: Channel | undefined = devMode ? SEED_CHANNELS.find((c) => c.id === channelId) : undefined;
 
-  // Dev stub: channels fabricated by requestChannel() (`dev-<companyId>`) are
-  // not in SEED_CHANNELS — rebuild them from the company branding snapshot.
-  // ToDo: once the server creates real channel rows this falls away.
-  if (!channel && devMode && channelId.startsWith('dev-')) {
-    const company = companies.find((c) => c.id === channelId.slice(4));
-    if (company) {
-      channel = {
-        id: `dev-${company.id}`,
-        scope: 'personal',
-        companyId: company.id,
-        companyName: company.name,
-        companyIcon: company.icon,
-        companyIconBg: company.iconBg,
-        companyImage: company.image,
-        phoneNumber: company.phone,
-        lastMessagePreview: 'No messages yet',
-        lastMessageAt: Date.now(),
-        unreadCount: 0,
-      };
-    }
+  // In-game the id is resolved asynchronously; hold the page while pending.
+  const active = channel ?? resolved ?? undefined;
+  if (!active) {
+    if (devMode || missing) return <Navigate to='/channels' replace />;
+    return <div className='app-loading'>Loading…</div>;
   }
-
-  if (!channel) return <Navigate to='/channels' replace />;
 
   // A company channel only makes sense while the employee is on the clock:
   // guard against direct URL access without employee mode.
-  if (channel.scope === 'company' && (!employeeMode || channel.companyId !== employeeCompanyId)) {
+  if (active.scope === 'company' && (!employeeMode || active.companyId !== employeeCompanyId)) {
     return <Navigate to='/channels' replace />;
   }
 
-  return <ChannelPage channel={channel} onBack={() => navigate('/channels')} />;
+  return <ChannelPage channel={active} onBack={() => navigate('/channels')} />;
 };
 
 const ManageRoute = () => {

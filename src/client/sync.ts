@@ -1,8 +1,16 @@
 import config from '@common/config';
 import { debuglog, isDebugEnabled, setDebugPushListener } from '@common/debug';
-import type { Announcement, BeaconSnapshot, Company, EmployeeCompanyResponse, JobData } from '@common/types';
+import type {
+  Announcement,
+  BeaconSnapshot,
+  Company,
+  EmployeeCompanyResponse,
+  JobData,
+  NewMessagePush,
+} from '@common/types';
 import * as cache from './cache';
 import { triggerServerCallback } from './utils/callbacks';
+import { getViewerPhone } from './viewer';
 
 // ---------------------------------------------------------------------------
 // Cache ⇄ NUI bridge
@@ -137,13 +145,39 @@ export const initBeaconSync = (): void => {
     }
   });
 
+  onNet('beaconapp:client:newmessage', (push: NewMessagePush) => {
+    debuglog(`[beaconapp:client] recv newmessage "${push?.channelId}" from ${push?.senderSide ?? '?'}`);
+
+    const phone = getViewerPhone();
+    const recipientIsCustomer = push.senderSide === 'company' && phone === push.phoneNumber;
+    const recipientIsCompany = push.senderSide === 'user';
+
+    if (recipientIsCustomer || recipientIsCompany) {
+      try {
+        const company = cache.getCompanies().find((c) => c.id === push.companyId);
+        const title = recipientIsCustomer ? (company?.name ?? 'New message') : 'New message';
+
+        global.exports['lb-phone'].SendNotification({
+          app: config.Identifier,
+          title,
+          content: push.message.content,
+        });
+
+        debuglog(`[beaconapp:client] lb-phone SendNotification for new message in "${push.channelId}"`);
+      } catch (err) {
+        console.error('[beaconapp] lb-phone SendNotification failed', err);
+      }
+    }
+
+    cache.invalidate('personal');
+    if (push.companyId) cache.invalidate(`company:${push.companyId}`);
+  });
+
   onNet('beaconapp:client:removeannouncement', (data: { id?: string }) => {
     debuglog(`[beaconapp:client] recv removeannouncement "${data?.id}"`);
     if (typeof data?.id === 'string') cache.removeAnnouncement(data.id);
   });
 
-  // Framework integration: the bridge re-emits this whenever the player's
-  // active group changes, including while the app is closed.
   on('beaconapp:groupupdate', (jobData?: JobData | null) => {
     void resolveEmployee(jobData ?? null);
   });

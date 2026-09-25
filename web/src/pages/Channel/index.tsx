@@ -1,8 +1,9 @@
 import { getSeedMessages } from '@common/data/channelMessages';
-import type { Channel, GetMessagesRequest, Message } from '@common/types';
+import type { Channel, GetMessagesRequest, Message, SendMessageResponse } from '@common/types';
 import { CaretLeftIcon, PaperPlaneTiltIcon, PhoneIcon } from '@phosphor-icons/react/dist/ssr';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '~/components/BrandMark';
+import { useNuiEvent } from '~/hooks/useNuiEvent';
 import { fetchNui } from '~/utils/fetchNui';
 import { devMode } from '~/utils/utils';
 import styles from './index.module.scss';
@@ -57,6 +58,7 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [refreshKey, setRefreshKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const anchorRef = useRef<HTMLDivElement | null>(null);
 
@@ -75,21 +77,21 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setVisibleCount(PAGE_SIZE);
+    const initial = refreshKey === 0;
+    if (initial) setLoading(true);
 
-    // Dev fallback mirrors fetchNui's mockData contract; replaced by real DB
-    // queries once the schema exists.
+    // Dev fallback mirrors fetchNui's mockData contract.
     const mock = devMode ? getSeedMessages(channel.id) : undefined;
 
     fetchNui<Message[]>('beaconapp:getmessages', { channelId: channel.id } satisfies GetMessagesRequest, mock)
       .then((rows) => {
         if (cancelled) return;
         setMessages([...rows].sort((a, b) => a.timestamp - b.timestamp));
+        if (initial) setVisibleCount(PAGE_SIZE);
       })
       .catch((err) => {
         console.error('[beaconapp] failed to load messages', err);
-        if (!cancelled) setMessages([]);
+        if (!cancelled && initial) setMessages([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -98,7 +100,12 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [channel.id]);
+  }, [channel.id, refreshKey]);
+
+  // The client cache revalidates the affected slices when a new-message push
+  // lands (ending in a hydrate push), so an open thread refreshes silently and
+  // messages sent from the other side appear without remounting the app.
+  useNuiEvent('beaconapp:hydrate', () => setRefreshKey((k) => k + 1));
 
   // Keep the conversation pinned to the latest message.
   useEffect(() => {
@@ -128,9 +135,11 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
     if (!content) return;
 
     // author: 'user' — the viewer's own sends; colleagues carry
-    // author: 'employee' + sentByEmployeeName (internal data only).
+    // author: 'employee' + sentByEmployeeName (internal data only). The id is
+    // a negative placeholder: it cannot collide with the DB's auto-increment
+    // ids, and marks the row as not-yet-confirmed.
     const message: Message = {
-      id: `local-${Date.now()}`,
+      id: -Date.now(),
       channelId: channel.id,
       direction: 'outgoing',
       author: 'user',
@@ -138,14 +147,29 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
       timestamp: Date.now(),
     };
 
-    // Optimistic append now; backend send + broadcast replaces this once the
-    // message-write queries exist.
+    // Optimistic append now; the server's response replaces the bubble with
+    // the stored row (authoritative id) or drops it.
     setMessages((prev) => [...prev, message]);
     setDraft('');
 
-    fetchNui('beaconapp:sendmessage', { channelId: channel.id, content }).catch((err) =>
-      console.error('[beaconapp] failed to send message', err),
-    );
+    fetchNui<SendMessageResponse>(
+      'beaconapp:sendmessage',
+      { channelId: channel.id, content },
+      // Dev stand-in: the round-trip succeeds with the local bubble as-is.
+      { success: true, message },
+    )
+      .then((res) => {
+        if (!res.success) {
+          console.error('[beaconapp] failed to send message:', res.message);
+          setMessages((prev) => prev.filter((m) => m.id !== message.id));
+          return;
+        }
+        setMessages((prev) => prev.map((m) => (m.id === message.id ? res.message : m)));
+      })
+      .catch((err) => {
+        console.error('[beaconapp] failed to send message', err);
+        setMessages((prev) => prev.filter((m) => m.id !== message.id));
+      });
   };
 
   return (

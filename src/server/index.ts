@@ -19,6 +19,7 @@ import type {
   GetOrCreateChannelRequest,
   GetOrCreateChannelResponse,
   Message,
+  NewMessagePush,
   Post,
   SendMessageRequest,
   SendMessageResponse,
@@ -72,8 +73,7 @@ const broadcast = (event: string, target: number | number[] | string, payload: u
   debuglog(`[beaconapp:server] emit ${event} -> ${target}`, payload);
 
   for (const src of targets) {
-    if (sender !== src)
-      emitNet(event, src, payload);
+    if (sender !== src) emitNet(event, src, payload);
   }
 };
 
@@ -195,11 +195,16 @@ const getViewerPhone = (src: number): string | null => {
   }
 };
 
-const toChannel = (row: db.ChannelRow): Channel => {
+/**
+ * The conversation row is shared by both sides, so `viewerScope` is the
+ * requester's perspective: it only decides which unread counter and which
+ * branding direction the payload carries, never which rows are visible.
+ */
+const toChannel = (row: db.ChannelRow, viewerScope: ChannelScope): Channel => {
   const company = getCompany(row.company_id);
   return {
     id: row.id,
-    scope: row.scope as ChannelScope,
+    scope: viewerScope,
     companyId: row.company_id,
     companyName: company?.name,
     companyIcon: company?.icon,
@@ -208,19 +213,17 @@ const toChannel = (row: db.ChannelRow): Channel => {
     phoneNumber: row.phone_number ? (row.phone_number as `${number}`) : null,
     lastMessagePreview: row.last_message_preview,
     lastMessageAt: row.last_message_at,
-    unreadCount: row.unread_count,
+    unreadCount: viewerScope === 'personal' ? row.unread_user : row.unread_company,
   };
 };
 
-const toMessage = (row: db.MessageRow): Message => {
-  const outgoing =
-    (row.author === 'user' && row.channel_id.startsWith('personal:')) ||
-    (row.author === 'employee' && row.channel_id.startsWith('company:'));
+const toMessage = (row: db.MessageRow, viewerIsCustomer: boolean): Message => {
+  const outgoing = viewerIsCustomer ? row.author === 'user' : row.author === 'employee';
   return {
     id: row.id,
     channelId: row.channel_id,
     direction: outgoing ? 'outgoing' : 'incoming',
-    author: outgoing ? (row.author ?? undefined) : undefined,
+    author: outgoing ? row.author : undefined,
     sentByEmployeeName: row.sent_by ?? undefined,
     content: row.content,
     timestamp: row.created_at,
@@ -379,7 +382,7 @@ RegisterServerCallback<Channel[]>('beaconapp:getchannels', async (src, data: Get
       : await db.getChannelsByCompany(data.companyId);
 
   debuglog(`[beaconapp:server] getchannels (${data.scope}) -> ${rows.length} rows (db)`);
-  return rows.map(toChannel);
+  return rows.map((row) => toChannel(row, data.scope));
 });
 
 RegisterServerCallback<Message[]>('beaconapp:getmessages', async (src, data: GetMessagesRequest) => {
@@ -389,16 +392,35 @@ RegisterServerCallback<Message[]>('beaconapp:getmessages', async (src, data: Get
   const offset = typeof data.offset === 'number' && data.offset > 0 ? data.offset : 0;
 
   const phone = getViewerPhone(src);
-  if (!phone) return [];
+  if (!phone) {
+    debuglog(`[beaconapp:server] denied getmessages src=${src}: no phone number`);
+    return [];
+  }
 
   const channel = await db.getChannel(data.channelId);
-  if (!channel) return [];
-  if (channel.scope === 'personal' && channel.phone_number !== phone) return [];
-  // ToDo (auth): for `company` scope, verify the viewer actually works at the channel's company.
+  if (!channel) {
+    debuglog(`[beaconapp:server] denied getmessages src=${src} "${data.channelId}": unknown channel`);
+    return [];
+  }
+
+  // Either side of the conversation may read it: the customer owns the phone,
+  // employees must work for the conversation's company. `hasJob` takes the
+  // company's job name, not its id.
+  const company = getCompany(channel.company_id);
+  const viewerIsCustomer = channel.phone_number === phone;
+  if (!viewerIsCustomer && !(company && hasJob(src, company.job))) {
+    debuglog(`[beaconapp:server] denied getmessages src=${src} "${data.channelId}": not a participant`);
+    return [];
+  }
 
   const rows = await db.getMessages(data.channelId, limit, offset);
+
+  // Reading the thread resets only this side's unread counter. Fire-and-forget:
+  // bookkeeping must not fail the fetch.
+  void db.markChannelRead(data.channelId, viewerIsCustomer ? 'user' : 'company');
+
   debuglog(`[beaconapp:server] getmessages "${data.channelId}" -> ${rows.length} rows (db)`);
-  return rows.map(toMessage);
+  return rows.map((row) => toMessage(row, viewerIsCustomer));
 });
 
 RegisterServerCallback<GetOrCreateChannelResponse>(
@@ -407,21 +429,27 @@ RegisterServerCallback<GetOrCreateChannelResponse>(
     if (!isRecord(data) || typeof data.companyId !== 'string') return { success: false, message: 'Invalid request' };
 
     const company = getCompany(data.companyId);
-    if (!isCompanyReachable(company)) return { success: false, message: 'This business is unreachable' };
+    if (!isCompanyReachable(company)) {
+      debuglog(`[beaconapp:server] denied getorcreatechannel src=${src} "${data.companyId}": unreachable`);
+      return { success: false, message: 'This business is unreachable' };
+    }
 
     const phone = getViewerPhone(src);
-    if (!phone) return { success: false, message: 'No phone number found' };
+    if (!phone) {
+      debuglog(`[beaconapp:server] denied getorcreatechannel src=${src}: no phone number`);
+      return { success: false, message: 'No phone number found' };
+    }
 
-    await db.createChannelPair(company.id, phone);
-    const row = await db.getChannel(db.buildChannelId('personal', company.id, phone));
+    await db.createChannel(company.id, phone);
+    const row = await db.getChannel(db.buildChannelId(company.id, phone));
     if (!row) return { success: false, message: 'Unable to open the conversation' };
 
-    // A fresh pair carries the zeroed defaults from the schema, so an untouched
+    // A fresh row carries the zeroed defaults from the schema, so an untouched
     // `last_message_at` means this contact is brand-new.
     const created = row.last_message_at === 0;
 
     debuglog(`[beaconapp:server] getorcreatechannel "${company.id}" -> ${created ? 'created' : 'existing'}`);
-    return { success: true, channel: toChannel(row), created };
+    return { success: true, channel: toChannel(row, 'personal'), created };
   },
 );
 
@@ -434,40 +462,88 @@ RegisterServerCallback<SendMessageResponse>('beaconapp:sendmessage', async (src,
     return { success: false, message: 'Message must be 1-400 characters' };
 
   const phone = getViewerPhone(src);
-  if (!phone) return { success: false, message: 'No phone number found' };
+  if (!phone) {
+    debuglog(`[beaconapp:server] denied sendmessage src=${src}: no phone number`);
+    return { success: false, message: 'No phone number found' };
+  }
 
-  // The scope is encoded in the deterministic id (`personal:c1:555...`), so
-  // the viewer can only send from a channel half they own.
-  const [scope, companyId] = data.channelId.split(':');
-  if ((scope !== 'personal' && scope !== 'company') || !companyId)
+  const parts = db.parseChannelId(data.channelId);
+  if (!parts) {
+    debuglog(`[beaconapp:server] denied sendmessage src=${src}: malformed channel id "${data.channelId}"`);
     return { success: false, message: 'Unknown channel' };
-  // ToDo (auth): for `company` scope, verify the sender actually works at `companyId`.
+  }
 
-  const channel = await db.getChannel(data.channelId);
-  if (!channel) return { success: false, message: 'Unknown channel' };
-  if (scope === 'personal' && channel.phone_number !== phone) return { success: false, message: 'Unknown channel' };
+  let channel = await db.getChannel(data.channelId);
+  if (!channel) {
+    // Self-healing: a reply (or a send into a conversation that was never
+    // opened) recreates the row instead of failing with "Unknown channel".
+    await db.createChannel(parts.companyId, parts.phoneNumber);
+    channel = await db.getChannel(data.channelId);
+    debuglog(`[beaconapp:server] sendmessage created missing channel "${data.channelId}"`);
+  }
+  if (!channel) {
+    debuglog(`[beaconapp:server] denied sendmessage src=${src} "${data.channelId}": unknown channel`);
+    return { success: false, message: 'Unknown channel' };
+  }
 
-  const company = getCompany(companyId);
-  if (!company) return { success: false, message: 'Unknown channel' };
+  const company = getCompany(channel.company_id);
+  if (!company) {
+    debuglog(`[beaconapp:server] denied sendmessage src=${src} "${data.channelId}": unknown company`);
+    return { success: false, message: 'Unknown channel' };
+  }
+
+  const senderIsCustomer = channel.phone_number === phone;
+  if (!senderIsCustomer && !hasJob(src, company.job)) {
+    debuglog(`[beaconapp:server] denied sendmessage src=${src} "${data.channelId}": not a participant`);
+    return { success: false, message: 'Unknown channel' };
+  }
 
   const timestamp = Date.now();
-  const author: 'user' | 'employee' = scope === 'personal' ? 'user' : 'employee';
+  const author: 'user' | 'employee' = senderIsCustomer ? 'user' : 'employee';
   const senderName = author === 'employee' ? getPlayerName(src) : undefined;
-  const messageId = makeId('m');
 
-  await db.insertMessage({
-    id: messageId,
+  const messageId = await db.insertMessage({
     channel_id: data.channelId,
     author,
     sent_by: senderName ?? null,
     content,
     created_at: timestamp,
   });
-  await db.touchChannelPair(companyId, channel.phone_number, content.slice(0, 120), timestamp);
+  if (messageId === null) return { success: false, message: 'Unable to send the message' };
 
-  // ToDo (unread): increment the other half's unread_count on send and reset
-  // it when that viewer fetches the channel, instead of leaving both at 0.
-  debuglog(`[beaconapp:server] sendmessage "${data.channelId}" by ${author}`);
+  // The preview/time is shared; the unread counter goes to the side that did
+  // not write this message (an employee writes for the company side).
+  await db.touchChannel(
+    channel.company_id,
+    channel.phone_number,
+    content.slice(0, 120),
+    timestamp,
+    senderIsCustomer ? 'user' : 'company',
+  );
+  debuglog(`[beaconapp:server] sendmessage "${data.channelId}" by ${author} (#${messageId})`);
+
+  const payload: NewMessagePush = {
+    channelId: data.channelId,
+    companyId: channel.company_id,
+    senderSide: senderIsCustomer ? 'user' : 'company',
+    phoneNumber: channel.phone_number,
+    message: {
+      id: messageId,
+      author,
+      sentByEmployeeName: senderName,
+      content,
+      timestamp,
+    },
+  };
+
+  if (senderIsCustomer) {
+    broadcast('beaconapp:client:newmessage', company.job, payload);
+  } else {
+    broadcast('beaconapp:client:newmessage', company.job, payload, src);
+
+    const targetSource = global.exports['lb-phone'].GetSourceFromNumber(channel.phone_number);
+    if (typeof targetSource === 'number') broadcast('beaconapp:client:newmessage', targetSource, payload);
+  }
 
   return {
     success: true,
@@ -484,15 +560,6 @@ RegisterServerCallback<SendMessageResponse>('beaconapp:sendmessage', async (src,
 });
 
 // Bootstrap
-
-// Debug logging is owned by the replicated `beaconapp:debug` convar. A player
-// toggling it in the dev panel flips it for the whole server on purpose — the
-// gate is a server-wide switch, not a per-player one.
-onNet('beaconapp:server:debugtoggle', () => {
-  const next = !isDebugEnabled();
-  SetConvarReplicated('beaconapp:debug', next ? '1' : '0');
-  debuglog(`[beaconapp:server] debugtoggle -> beaconapp:debug ${next ? 1 : 0}`);
-});
 
 setImmediate(async () => {
   try {

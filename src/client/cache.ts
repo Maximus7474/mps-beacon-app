@@ -135,12 +135,23 @@ export const subscribe = (listener: (change: CacheChange, revision: number) => v
 
 export const getRevision = (): number => revision;
 
+export const getEmployee = (): EmployeeState => employee;
+
 export const getCompanies = (): Company[] => companies.data;
 
 export const getAnnouncements = (): Announcement[] => announcements.data;
 
 export const getChannels = (scope: ChannelScope, companyId?: string): Channel[] =>
   getChannelSlice(scope, companyId)?.data ?? [];
+
+/** Looks a channel up by id across the channel slices that have been fetched. */
+export const getChannelById = (id: string): Channel | undefined => {
+  for (const slice of channels.values()) {
+    const channel = slice.data.find((channel) => channel.id === id);
+    if (channel) return channel;
+  }
+  return undefined;
+};
 
 /** Scope keys that have already been fetched; used by the revalidation timer. */
 export const channelKeys = (): ChannelSliceKey[] => [...channels.keys()];

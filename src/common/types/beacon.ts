@@ -103,7 +103,16 @@ export type EmployeeCompanyResponse = {
 export type ChannelScope = 'personal' | 'company';
 
 export type Channel = {
+  /**
+   * Compound conversation key `<companyId>:<phone>`. One row serves both
+   * sides; which "half" a viewer sees is a property of the viewer, not the id.
+   */
   id: string;
+  /**
+   * The viewer's perspective on this conversation: `personal` for the
+   * customer (they see the company's branding), `company` for an employee
+   * (they see the customer's phone number). The stored row has no scope.
+   */
   scope: ChannelScope;
   /** Personal scope: the company the conversation is with. */
   companyId?: string;
@@ -138,7 +147,11 @@ export type MessageAuthor = 'user' | 'employee';
 export type MessageDirection = 'incoming' | 'outgoing';
 
 export type Message = {
-  id: string;
+  /**
+   * Auto-increment id from the database. Optimistic client entries use a
+   * negative placeholder until the server's response replaces them.
+   */
+  id: number;
   channelId: string;
   direction: MessageDirection;
   /** Present only for outgoing messages. */
@@ -184,6 +197,26 @@ export type GetOrCreateChannelRequest = {
 export type GetOrCreateChannelResponse =
   | { success: true; channel: Channel; created: boolean }
   | { success: false; message: string };
+
+/**
+ * Server push when a message is written. Broadcast to every client; each one
+ * decides relevance for itself (receiving side, open channel lists).
+ */
+export type NewMessagePush = {
+  channelId: string;
+  companyId: string;
+  /** Which side wrote the message; the other side is the recipient. */
+  senderSide: 'user' | 'company';
+  /** The conversation's customer phone number (both sides of the pair). */
+  phoneNumber: string;
+  message: {
+    id: number;
+    author: 'user' | 'employee';
+    sentByEmployeeName?: string;
+    content: string;
+    timestamp: number;
+  };
+};
 
 // Client cache & NUI sync
 
