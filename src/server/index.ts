@@ -58,9 +58,23 @@ const fail = (message: string): BasicResponse => ({ success: false, message });
  * exactly what was emitted and when — a missing notification usually means this
  * line never fired (the write failed upstream) rather than a client problem.
  */
-const broadcast = (event: string, payload: unknown): void => {
-  debuglog(`[beaconapp:server] emit ${event} -> -1`, payload);
-  emitNet(event, -1, payload);
+const broadcast = (event: string, target: number | number[] | string, payload: unknown, sender?: number): void => {
+  let targets: number[];
+
+  if (typeof target === 'number') {
+    targets = [target];
+  } else if (Array.isArray(target)) {
+    targets = target;
+  } else if (typeof target === 'string') {
+    targets = global.exports['mps-beacon-app'].getEmployees(target);
+  }
+
+  debuglog(`[beaconapp:server] emit ${event} -> ${target}`, payload);
+
+  for (const src of targets) {
+    if (sender !== src)
+      emitNet(event, src, payload);
+  }
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -289,7 +303,7 @@ RegisterServerCallback<BasicResponse>('beaconapp:addannouncement', async (src, d
     createdAt: row.created_at,
   };
 
-  broadcast('beaconapp:client:updateannouncement', announcement);
+  broadcast('beaconapp:client:updateannouncement', -1, announcement);
   return { success: true };
 });
 
@@ -298,7 +312,7 @@ RegisterServerCallback<BasicResponse>('beaconapp:deleteannouncement', async (src
   if (validation.ok === false) return validation.response;
 
   await db.deleteAnnouncement(validation.value);
-  broadcast('beaconapp:client:removeannouncement', { id: validation.value });
+  broadcast('beaconapp:client:removeannouncement', -1, { id: validation.value });
   return { success: true };
 });
 
@@ -323,7 +337,7 @@ RegisterServerCallback<BasicResponse>('beaconapp:addpost', async (src, data: Add
   // ToDo (perf): hydrate posts from the DB on boot (`db.getAllPosts`).
   company.posts = [post, ...company.posts];
 
-  broadcast('beaconapp:client:updatecompany', company);
+  broadcast('beaconapp:client:updatecompany', -1, company);
   return { success: true };
 });
 
@@ -335,7 +349,7 @@ RegisterServerCallback<BasicResponse>('beaconapp:deletepost', async (src, data: 
   await db.deletePost(company.id, postId);
   company.posts = company.posts.filter((post) => post.id !== postId);
 
-  broadcast('beaconapp:client:updatecompany', company);
+  broadcast('beaconapp:client:updatecompany', -1, company);
   return { success: true };
 });
 
@@ -349,7 +363,7 @@ RegisterServerCallback<BasicResponse>('beaconapp:setcompanystatus', async (src, 
   company.lastActiveAt = Date.now();
 
   debuglog(`[beaconapp:server] setcompanystatus "${company.id}" -> ${status}`);
-  broadcast('beaconapp:client:updatecompany', company);
+  broadcast('beaconapp:client:updatecompany', -1, company);
   return { success: true };
 });
 
