@@ -1,16 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BugIcon, MoonIcon, SunIcon, WrenchIcon } from '@phosphor-icons/react/dist/ssr';
+import { MoonIcon, SunIcon, WrenchIcon } from '@phosphor-icons/react/dist/ssr';
 import { useBeacon } from '~/hooks/useBeacon';
-import { fetchNui } from '~/utils/fetchNui';
-import { devMode } from '~/utils/utils';
-import { onDebugChange } from '~/utils/debug';
 
 import './Theming.scss';
 
 const ThemeToggler: React.FC = () => {
   const [theme, setTheme] = useState('light');
   const { employeeMode, setEmployeeMode } = useBeacon();
-  const [debug, setDebug] = useState(false);
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
@@ -24,10 +20,6 @@ const ThemeToggler: React.FC = () => {
     }
     document.body.setAttribute('data-theme', theme);
   }, [theme]);
-
-  // Mirror the client's convar state; the client-side toggle round-trips
-  // through fetchNui so F8 and this button can never disagree.
-  useEffect(() => onDebugChange(setDebug), []);
 
   return (
     <div className='theme-menu'>
@@ -52,23 +44,6 @@ const ThemeToggler: React.FC = () => {
           {employeeMode ? 'enabled' : 'disabled'}
         </span>
       </button>
-
-      {!devMode && (
-        <button
-          className={debug ? 'active' : undefined}
-          onClick={() => {
-            void fetchNui('beaconapp:client:debugtoggle');
-          }}
-          aria-pressed={debug}
-        >
-          <BugIcon size='1.5em' />
-          <span className='tooltip'>
-            Debug logging
-            <br />
-            {debug ? 'enabled' : 'disabled'}
-          </span>
-        </button>
-      )}
     </div>
   );
 };
