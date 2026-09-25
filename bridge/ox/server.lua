@@ -51,6 +51,23 @@ local function getName(src)
     return string.format("%s %s", firstName, lastName)
 end
 
+local function getEmployees(group)
+    local players = Ox.GetPlayers({ activeGroup = group })
+    local targets = {}
+
+    for i = 1, #players do
+        local player = players[i]
+        local phone = exports['lb-phone']:GetEquippedPhoneNumber(player.source)
+
+        if phone then
+            table.insert(targets, player.source)
+        end
+    end
+
+    return targets
+end
+
 exports('hasJob', hasJob)
 exports('hasGrade', hasGrade)
 exports('getName', getName)
+exports('getEmployees', getEmployees)
