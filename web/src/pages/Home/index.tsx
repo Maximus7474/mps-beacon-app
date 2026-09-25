@@ -29,7 +29,7 @@ export function HomePage({ companies, onSelectCompany }: HomePageProps) {
       <div className={styles.header}>
         <div className={styles.titleRow}>
           <div>
-            <h1 className={styles.title}>Nearby</h1>
+            <h1 className={styles.title}>Services</h1>
           </div>
         </div>
         <div className={styles.searchWrap}>
