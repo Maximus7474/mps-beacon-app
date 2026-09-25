@@ -12,19 +12,24 @@ import styles from './index.module.scss';
 type Tab = Exclude<ChannelScope, never>;
 
 const TAB_SCOPES: Record<Tab, ChannelScope> = { personal: 'personal', company: 'company' };
+const STORAGE_KEY = 'channels_page_tab';
 
 // Page size for progressive scrolling — the backend will eventually accept
 // offset/limit so oversized channel queries are avoided.
 const PAGE_SIZE = 12;
 
 interface ChannelsPageProps {
-  /** ToDo: wire to the channel-history page once it exists. */
   onOpenChannel?: (channel: Channel) => void;
 }
 
 export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
   const { employeeMode, employeeCompanyId } = useBeacon();
-  const [tab, setTab] = useState<Tab>('personal');
+  const [tab, setTab] = useState<Tab>(() => {
+    // lazy load the tab value from local storage
+    if (typeof window === 'undefined') return 'personal';
+    const saved = localStorage.getItem(STORAGE_KEY) as Tab | null;
+    return saved === 'personal' || saved === 'company' ? saved : 'personal';
+  });
   const [channels, setChannels] = useState<Channel[]>([]);
   const [loading, setLoading] = useState(true);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -33,6 +38,15 @@ export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
   // Outside employee mode the user only ever sees their own channels.
   const scope: ChannelScope = employeeMode ? TAB_SCOPES[tab] : 'personal';
   const companyId = employeeMode && scope === 'company' ? (employeeCompanyId ?? undefined) : undefined;
+
+  const handleTabChange = (nextTab: Tab) => {
+    setTab(nextTab);
+    try {
+      localStorage.setItem(STORAGE_KEY, nextTab);
+    } catch (err) {
+      console.error('[beaconapp] failed to save active tab to localStorage', err);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -109,14 +123,14 @@ export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
             <button
               type='button'
               className={`${styles.segment} ${tab === 'personal' ? styles.active : ''}`}
-              onClick={() => setTab('personal')}
+              onClick={() => handleTabChange('personal')}
             >
               Personal
             </button>
             <button
               type='button'
               className={`${styles.segment} ${tab === 'company' ? styles.active : ''}`}
-              onClick={() => setTab('company')}
+              onClick={() => handleTabChange('company')}
             >
               Company
             </button>

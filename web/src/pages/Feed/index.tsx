@@ -12,6 +12,7 @@ const filters: { id: Filter; label: string }[] = [
   { id: 'offer', label: 'Offers' },
   { id: 'general', label: 'General' },
 ];
+const STORAGE_KEY = 'channels_page_tab';
 
 const typeLabel: Record<AnnouncementType, string> = {
   status: 'STATUS',
@@ -24,13 +25,27 @@ interface AnnouncementFeedProps {
 }
 
 export function AnnouncementFeedPage({ announcements }: AnnouncementFeedProps) {
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>(() => {
+    // lazy load the tab value from local storage
+    if (typeof window === 'undefined') return 'all';
+    const saved = localStorage.getItem(STORAGE_KEY) as Filter | null;
+    return saved ?? 'all';
+  });
 
   const sorted = useMemo(() => {
     const base = [...announcements].sort((a, b) => b.createdAt - a.createdAt);
     if (filter === 'all') return base;
     return base.filter((a) => a.type === filter);
   }, [filter, announcements]);
+
+  const handleTabChange = (nextTab: Filter) => {
+    setFilter(nextTab);
+    try {
+      localStorage.setItem(STORAGE_KEY, nextTab);
+    } catch (err) {
+      console.error('[beaconapp] failed to save active tab to localStorage', err);
+    }
+  };
 
   return (
     <div className={styles.page}>
@@ -41,7 +56,7 @@ export function AnnouncementFeedPage({ announcements }: AnnouncementFeedProps) {
             <button
               key={f.id}
               className={`${styles.segment} ${filter === f.id ? styles.active : ''}`}
-              onClick={() => setFilter(f.id)}
+              onClick={() => handleTabChange(f.id)}
             >
               {f.label}
             </button>
