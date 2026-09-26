@@ -56,6 +56,15 @@ local function getEmployees(group)
     return targets
 end
 
+---@param src number
+local function clearcache(src)
+    exports['mps-beacon-app']:clearcache(src)
+end
+
+AddEventHandler('esx:playerLogout', function (playerId)
+    clearcache(playerId)
+end)
+
 exports('hasJob', hasJob)
 exports('hasGrade', hasGrade)
 exports('getName', getName)
