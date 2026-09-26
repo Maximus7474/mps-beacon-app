@@ -1,5 +1,5 @@
 import { getSeedMessages } from '@common/data/channelMessages';
-import type { Channel, GetMessagesRequest, Message, SendMessageResponse } from '@common/types';
+import type { GetMessagesRequest, Message, NewMessagePush, SendMessageResponse } from '@common/types';
 import { CaretLeftIcon, PaperPlaneTiltIcon, PhoneIcon } from '@phosphor-icons/react/dist/ssr';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '~/components/BrandMark';
@@ -58,7 +58,6 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
   const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState('');
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [refreshKey, setRefreshKey] = useState(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const anchorRef = useRef<HTMLDivElement | null>(null);
 
@@ -77,8 +76,7 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
 
   useEffect(() => {
     let cancelled = false;
-    const initial = refreshKey === 0;
-    if (initial) setLoading(true);
+    setLoading(true);
 
     // Dev fallback mirrors fetchNui's mockData contract.
     const mock = devMode ? getSeedMessages(channel.id) : undefined;
@@ -87,11 +85,11 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
       .then((rows) => {
         if (cancelled) return;
         setMessages([...rows].sort((a, b) => a.timestamp - b.timestamp));
-        if (initial) setVisibleCount(PAGE_SIZE);
+        setVisibleCount(PAGE_SIZE);
       })
       .catch((err) => {
         console.error('[beaconapp] failed to load messages', err);
-        if (!cancelled && initial) setMessages([]);
+        if (!cancelled) setMessages([]);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -100,12 +98,36 @@ export function ChannelPage({ channel, onBack }: ChannelPageProps) {
     return () => {
       cancelled = true;
     };
-  }, [channel.id, refreshKey]);
+  }, [channel.id]);
 
-  // The client cache revalidates the affected slices when a new-message push
-  // lands (ending in a hydrate push), so an open thread refreshes silently and
-  // messages sent from the other side appear without remounting the app.
-  useNuiEvent('beaconapp:hydrate', () => setRefreshKey((k) => k + 1));
+  // One fetch per mount. Later updates come in as pushes: the client runtime
+  // forwards the server's newmessage event for this channel, and the page
+  // appends rows that are not already held (the optimistic row from a local
+  // send is matched by the id the server echoes back, so nothing duplicates).
+  useNuiEvent<NewMessagePush>('beaconapp:newmessage', (push) => {
+    if (!push || push.channelId !== channel.id) return;
+
+    const incoming: Message = {
+      id: push.message.id,
+      channelId: push.channelId,
+      direction:
+        (viewerIsEmployee && push.senderSide === 'company') || (!viewerIsEmployee && push.senderSide === 'user')
+          ? 'outgoing'
+          : 'incoming',
+      author: push.message.author,
+      sentByEmployeeName: push.message.sentByEmployeeName,
+      content: push.message.content,
+      timestamp: push.message.timestamp,
+    };
+
+    setMessages((prev) => {
+      // Already held (echo of an optimistic send, or a duplicate push): keep
+      // the authoritative row if ids collide, otherwise append.
+      const existing = prev.find((m) => m.id === incoming.id || (m.id < 0 && m.content === incoming.content));
+      if (existing) return prev.map((m) => (m.id === existing.id ? incoming : m));
+      return [...prev, incoming];
+    });
+  });
 
   // Keep the conversation pinned to the latest message.
   useEffect(() => {

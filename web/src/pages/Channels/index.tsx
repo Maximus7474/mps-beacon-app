@@ -1,5 +1,6 @@
 import { SEED_CHANNELS } from '@common/data/channels';
-import type { Channel, ChannelScope, GetChannelsRequest } from '@common/types';
+import type { BeaconSnapshot, Channel, ChannelScope, GetChannelsRequest } from '@common/types';
+import { channelSliceKey } from '@common/types';
 import { PhoneIcon } from '@phosphor-icons/react/dist/ssr';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '~/components/BrandMark';
@@ -61,6 +62,7 @@ export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
         )
       : undefined;
 
+    // One pull per mount
     fetchNui<Channel[]>('beaconapp:getchannels', request, mock)
       .then((rows) => {
         if (cancelled) return;
@@ -80,13 +82,13 @@ export function ChannelsPage({ onOpenChannel }: ChannelsPageProps) {
     };
   }, [scope, companyId]);
 
-  useNuiEvent('beaconapp:hydrate', () => {
-    void fetchNui<Channel[]>('beaconapp:getchannels', { scope, companyId, offset: 0, limit: PAGE_SIZE }).then(
-      (rows) => {
-        setChannels([...rows].sort((a, b) => b.lastMessageAt - a.lastMessageAt));
-        setVisibleCount((current) => Math.max(current, PAGE_SIZE));
-      },
-    );
+  useNuiEvent('beaconapp:hydrate', (snapshot: BeaconSnapshot) => {
+    const key = channelSliceKey(scope, companyId);
+    const rows = snapshot?.channels?.[key];
+    if (!rows) return;
+    setChannels([...rows].sort((a, b) => b.lastMessageAt - a.lastMessageAt));
+    setVisibleCount((current) => Math.max(current, PAGE_SIZE));
+    setLoading(false);
   });
 
   // Progressive scrolling: render in pages and grow as the sentinel scrolls

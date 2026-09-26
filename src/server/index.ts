@@ -561,6 +561,18 @@ RegisterServerCallback<SendMessageResponse>('beaconapp:sendmessage', async (src,
 
 // Bootstrap
 
+/**
+ * Session cache reset (character swap, job change, maintenance, …): tells the
+ * named player — or everyone — to drop their client caches. Clients pull a
+ * fresh snapshot the next time the app opens; nothing is refetched eagerly.
+ * Exposed so framework bridges (or future hooks) can trigger it.
+ */
+exports('clearcache', (src?: number) => {
+  const target = typeof src === 'number' ? src : -1;
+  debuglog(`[beaconapp:server] clearcache -> ${target}`);
+  emitNet('beaconapp:client:clearcache', target);
+});
+
 setImmediate(async () => {
   try {
     await db.waitForDatabase();

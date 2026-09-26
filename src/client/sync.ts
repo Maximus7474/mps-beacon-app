@@ -3,6 +3,7 @@ import { debuglog, isDebugEnabled, setDebugPushListener } from '@common/debug';
 import type {
   Announcement,
   BeaconSnapshot,
+  Channel,
   Company,
   EmployeeCompanyResponse,
   JobData,
@@ -16,8 +17,9 @@ import { getViewerPhone } from './viewer';
 // Cache ⇄ NUI bridge
 //
 // The client cache (see cache.ts) is the source of truth for what the UI can
-// display. This module keeps it fed from the server, mirrors every change into
-// the iframe, and serves the snapshot the UI hydrates from on mount.
+// display. It is passive: one pull per slice per session, then kept correct
+// purely by the server pushes handled here. This module mirrors every change
+// into the iframe and serves the snapshot the UI hydrates from on mount.
 //
 // The iframe is created on open and destroyed on close, so the UI can never be
 // relied on to observe its own lifetime: the app opening is signalled by the
@@ -31,14 +33,11 @@ const ACTION = {
   announcement: 'beaconapp:updateannouncement',
   announcementRemoved: 'beaconapp:removeannouncement',
   employee: 'beaconapp:setemployeemode',
+  newMessage: 'beaconapp:newmessage',
   hydrate: 'beaconapp:hydrate',
 } as const;
 
-/** How often stale slices are revalidated while the app is open. */
-const REVALIDATE_INTERVAL_MS = 60_000;
-
 let uiOpen = false;
-let timer: ReturnType<typeof setInterval> | null = null;
 
 /**
  * lb-phone custom-app iframes never receive `SendNUIMessage`: the phone only
@@ -97,21 +96,48 @@ const resolveEmployee = async (jobData: JobData | null): Promise<void> => {
   }
 };
 
-const startRevalidation = (): void => {
-  if (timer !== null) return;
+/**
+ * A message arrived for a conversation. The cache is never invalidated (that
+ * would force a refetch); the push is applied in place instead, and the full
+ * row is only pulled when the cache holds nothing usable for the channel
+ * (list never fetched, or a conversation the list predates).
+ */
+const applyNewMessage = async (push: NewMessagePush): Promise<void> => {
+  const known = cache.getChannelById(push.channelId);
 
-  debuglog(`[beaconapp:sync] revalidation timer started (${REVALIDATE_INTERVAL_MS}ms)`);
-  // Only runs while the app is open: a closed phone must not generate queries.
-  timer = setInterval(() => {
-    void cache.ensureFresh('companies', 'announcements', ...cache.channelKeys());
-  }, REVALIDATE_INTERVAL_MS);
-};
+  if (known) {
+    cache.applyChannel({
+      ...known,
+      lastMessagePreview: push.message.content,
+      lastMessageAt: push.message.timestamp,
+      // The recipient's counter goes up; the sender's was already zeroed
+      // locally on send. Server truth wins on the next full pull.
+      unreadCount: push.senderSide === 'user' ? known.unreadCount + 1 : known.unreadCount,
+    });
+    return;
+  }
 
-const stopRevalidation = (): void => {
-  if (timer === null) return;
-  clearInterval(timer);
-  timer = null;
-  debuglog('[beaconapp:sync] revalidation timer stopped');
+  const employee = cache.getEmployee();
+  const companyKey = `company:${push.companyId}` as const;
+  const viewerIsCustomer = push.senderSide === 'company' && getViewerPhone() === push.phoneNumber;
+  const viewerIsEmployee = push.senderSide === 'user' || employee.enabled;
+
+  if (viewerIsCustomer) await cache.fetchSliceIfMissing('personal');
+  else if (viewerIsEmployee) await cache.fetchSliceIfMissing(companyKey);
+
+  const channel = cache.getChannelById(push.channelId);
+  if (channel) {
+    // The pull itself may already carry the message (race with the insert);
+    // the patch keeps it correct either way.
+    cache.applyChannel({
+      ...channel,
+      lastMessagePreview: push.message.content,
+      lastMessageAt: Math.max(push.message.timestamp, channel.lastMessageAt),
+      unreadCount: push.senderSide === 'user' ? channel.unreadCount + 1 : channel.unreadCount,
+    });
+  } else {
+    debuglog(`[beaconapp:sync] newmessage "${push.channelId}" not held by this viewer; cache unchanged`);
+  }
 };
 
 /**
@@ -169,13 +195,28 @@ export const initBeaconSync = (): void => {
       }
     }
 
-    cache.invalidate('personal');
-    if (push.companyId) cache.invalidate(`company:${push.companyId}`);
+    void applyNewMessage(push);
+
+    // The open thread (if any) appends from this push directly instead of
+    // refetching; pages that are not showing it drop it harmlessly. Sent even
+    // when the cache had nothing to patch, so the thread never misses a row.
+    push(ACTION.newMessage, push, cache.getRevision());
   });
 
   onNet('beaconapp:client:removeannouncement', (data: { id?: string }) => {
     debuglog(`[beaconapp:client] recv removeannouncement "${data?.id}"`);
     if (typeof data?.id === 'string') cache.removeAnnouncement(data.id);
+  });
+
+  /**
+   * Session reset: the server drops its runtime state and tells every client
+   * to do the same (character changes, job changes, maintenance, …). The next
+   * app open / page mount pulls fresh data; no refetch is triggered now.
+   */
+  onNet('beaconapp:client:clearcache', () => {
+    debuglog('[beaconapp:client] recv clearcache');
+    cache.clear();
+    if (uiOpen) push(ACTION.hydrate, cache.getSnapshot(), cache.getRevision());
   });
 
   on('beaconapp:groupupdate', (jobData?: JobData | null) => {
@@ -199,8 +240,8 @@ export const initBeaconSync = (): void => {
         push(ACTION.employee, change.employee, revision);
         break;
       case 'slice':
-        // A revalidation landed after the iframe hydrated from a partial (or
-        // older) snapshot: replace the UI's state wholesale.
+        // A fetch or patch landed after the iframe hydrated: replace the UI's
+        // state wholesale so the open pages always mirror the cache exactly.
         if (uiOpen) push(ACTION.hydrate, cache.getSnapshot(), revision);
         break;
     }
@@ -228,14 +269,12 @@ export const initBeaconSync = (): void => {
  * Answers `beaconapp:client:sync`, i.e. "give this freshly created iframe its
  * first frame".
  *
- * A warm cache answers immediately, so reopening the app paints in one IPC hop
- * and only revalidates in the background (a hydrate push follows if the data
- * had gone stale). A cold cache has nothing to show, so the first fetch is
- * awaited — that is the only mount that should ever see a spinner.
+ * A warm cache answers immediately, so reopening the app paints in one IPC hop.
+ * A cold cache has nothing to show, so the first fetch is awaited — that is the
+ * only mount that should ever see a spinner.
  */
 export const handleUiSync = async (): Promise<BeaconSnapshot> => {
   uiOpen = true;
-  startRevalidation();
 
   // The convar listener only fires on change, so a player who joined while
   // debug was already on would otherwise never learn the state.
@@ -244,17 +283,16 @@ export const handleUiSync = async (): Promise<BeaconSnapshot> => {
   const cold = !cache.hasData('companies') || !cache.hasData('announcements');
   debuglog(`[beaconapp:sync] UI sync requested (${cold ? 'cold' : 'warm'} cache)`);
 
-  if (cold) await cache.ensureFreshNow('companies', 'announcements');
-  else void cache.ensureFresh('companies', 'announcements');
+  if (cold) await cache.fetchSliceIfMissing('companies', 'announcements');
+  else void cache.fetchSliceIfMissing('companies', 'announcements');
 
   debuglog(`[beaconapp:sync] snapshot served at revision ${cache.getRevision()}`);
 
   return cache.getSnapshot();
 };
 
-/** The app was closed: stop background work for it. */
+/** The app was closed: no background work was running, so just note it. */
 export const handleUiClosed = (): void => {
   debuglog('[beaconapp:sync] UI closed');
   uiOpen = false;
-  stopRevalidation();
 };

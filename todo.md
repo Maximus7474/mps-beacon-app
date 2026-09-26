@@ -9,5 +9,6 @@
   - [x] Adding announcements does not add them to the feed
   - [x] Deleting an announcement from the manage view does not remove it from the page (does remove from the DB)
   - Root cause: lb-phone custom-app iframes never receive `SendNUIMessage`; pushes now go through `SendCustomAppMessage` (sync.ts `SendNUIMessage`). Also: slice revalidations now announce hydrate pushes (cache.ts) so changes made by others reach an already-open app.
-- [x] Fix: selecting a messaging channel fails to load the channel, not allowing the user to send messages
+- [x] Fix: keeping the channels tab open queried the server every ~100ms
+  - Root cause: a refetch loop — `newmessage` pushes invalidated cache slices, invalidations were never cleared after a successful refetch, and every refetch emitted a hydrate push that made the Channels page call `getchannels` again. The passive cache removes revalidation entirely: one pull per slice per session, server pushes patch in place, unknown channels are pulled once on arrival, and `clearcache` (server export + ox bridge character-load hook) resets a session.
   - Root cause: ChannelRoute could only resolve dev seed ids (`dev-*`/seeds), so real channel ids (`<scope>:<companyId>:<phone>`) redirected back to the list. Now resolved via the new cache-served `beaconapp:getchannel` callback; sends also reconcile against the server response (failed sends no longer leave a phantom bubble).

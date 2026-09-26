@@ -12,32 +12,20 @@ import {
 import { triggerServerCallback } from './utils/callbacks';
 
 // ---------------------------------------------------------------------------
-// Freshness model:
-//  * pushes (`beaconapp:client:update*`) patch the cache in place. They are
-//    applied whether or not the UI is open, which is what makes state pushed
-//    while the app was closed show up on the next mount.
-//  * reads revalidate on a TTL and are single-flight, so N mounts, N tab
-//    switches and N timer ticks collapse into a single server round-trip.
+// Freshness model (passive):
+//  * The UI pulls once per mount and is then kept correct by server pushes.
+//  * Reads are served straight from this cache; nothing here ever polls,
+//    revalidates or expires — a slice is fetched at most once per session.
+//  * Cache reset (`clear`, or the `beaconapp:clearcache` server event) wipes
+//    everything; the next mount pulls fresh data (character/job changes etc).
 // ---------------------------------------------------------------------------
-
-/** Revalidation windows (ms). Pushes keep these slices correct in between. */
-const TTL = {
-  companies: 120_000,
-  announcements: 120_000,
-  channels: 30_000,
-} as const;
 
 export type CacheKey = 'companies' | 'announcements' | ChannelSliceKey;
 
 type Slice<T> = {
   data: T;
-  /** Epoch ms of the last successful fetch; 0 means "never fetched". */
-  fetchedAt: number;
-  /**
-   * True when the slice only ever accumulated pushes and was never fetched in
-   * full and it is always revalidated before being served as fresh.
-   */
-  partial: boolean;
+  /** True once the slice has been fetched from the server this session. */
+  loaded: boolean;
 };
 
 /** What changed, so the NUI bridge can pick between a patch and a full hydrate. */
@@ -50,8 +38,8 @@ export type CacheChange =
 
 // State
 
-const companies: Slice<Company[]> = { data: [], fetchedAt: 0, partial: false };
-const announcements: Slice<Announcement[]> = { data: [], fetchedAt: 0, partial: false };
+const companies: Slice<Company[]> = { data: [], loaded: false };
+const announcements: Slice<Announcement[]> = { data: [], loaded: false };
 const channels = new Map<ChannelSliceKey, Slice<Channel[]>>();
 let employee: EmployeeState = { enabled: false, companyId: null };
 
@@ -63,14 +51,9 @@ let revision = 0;
 
 /** Single-flight guard: at most one in-flight fetch per slice. */
 const inflight = new Map<CacheKey, Promise<void>>();
-/** Slices known to be out of date (a mutation we could not apply fully). */
-const dirtyKeys = new Set<CacheKey>();
 const listeners = new Set<(change: CacheChange, revision: number) => void>();
 
 const isChannelKey = (key: CacheKey): key is ChannelSliceKey => key === 'personal' || key.startsWith('company:');
-
-const ttlFor = (key: CacheKey): number =>
-  isChannelKey(key) ? TTL.channels : key === 'companies' ? TTL.companies : TTL.announcements;
 
 const sliceFor = (key: CacheKey): Slice<unknown> | undefined =>
   key === 'companies' ? companies : key === 'announcements' ? announcements : channels.get(key);
@@ -94,14 +77,8 @@ const bump = (change: CacheChange): number => {
   return revision;
 };
 
-/** A patch arriving before the first fetch means we only hold part of the set. */
-const markPartialIfUnfetched = (slice: Slice<unknown>) => {
-  if (slice.fetchedAt === 0) slice.partial = true;
-};
-
 export const applyCompany = (company: Company): number => {
   companies.data = upsert(companies.data, company);
-  markPartialIfUnfetched(companies);
   return bump({ kind: 'company', company });
 };
 
@@ -109,13 +86,11 @@ export const applyAnnouncement = (announcement: Announcement): number => {
   announcements.data = [...announcements.data.filter((a) => a.id !== announcement.id), announcement].sort(
     (a, b) => b.createdAt - a.createdAt,
   );
-  markPartialIfUnfetched(announcements);
   return bump({ kind: 'announcement', announcement });
 };
 
 export const removeAnnouncement = (id: string): number => {
   announcements.data = announcements.data.filter((a) => a.id !== id);
-  markPartialIfUnfetched(announcements);
   return bump({ kind: 'announcementRemoved', id });
 };
 
@@ -124,6 +99,28 @@ export const setEmployee = (next: EmployeeState): number => {
   if (next.enabled === employee.enabled && next.companyId === employee.companyId) return revision;
   employee = next;
   return bump({ kind: 'employee', employee });
+};
+
+/**
+ * Idempotent patch for one conversation. Applied to the cached list (only when
+ * it was fetched at least once — a list that was never read stays empty until
+ * its first pull) and mirrored by the bridge.
+ */
+export const applyChannel = (channel: Channel): number => {
+  const slice = channels.get(channelSliceKey(channel.scope, channel.companyId));
+  if (slice) slice.data = upsert(slice.data, channel);
+  return bump({ kind: 'slice', key: channelSliceKey(channel.scope, channel.companyId) });
+};
+
+/** Zeroes the unread counter on one side of a conversation, in place. */
+export const applyChannelRead = (channelId: string, readerScope: ChannelScope): number => {
+  const slice = channels.get(channelSliceKey(readerScope));
+  const channel = slice?.data.find((c) => c.id === channelId);
+  if (channel && channel.unreadCount > 0) {
+    channel.unreadCount = 0;
+    return bump({ kind: 'slice', key: channelSliceKey(readerScope) });
+  }
+  return revision;
 };
 
 export const subscribe = (listener: (change: CacheChange, revision: number) => void): (() => void) => {
@@ -147,14 +144,11 @@ export const getChannels = (scope: ChannelScope, companyId?: string): Channel[] 
 /** Looks a channel up by id across the channel slices that have been fetched. */
 export const getChannelById = (id: string): Channel | undefined => {
   for (const slice of channels.values()) {
-    const channel = slice.data.find((channel) => channel.id === id);
+    const channel = slice.data.find((entry) => entry.id === id);
     if (channel) return channel;
   }
   return undefined;
 };
-
-/** Scope keys that have already been fetched; used by the revalidation timer. */
-export const channelKeys = (): ChannelSliceKey[] => [...channels.keys()];
 
 /**
  * Everything the NUI needs. The arrays are handed over by reference because the
@@ -169,32 +163,20 @@ export const getSnapshot = (): BeaconSnapshot => ({
   channels: Object.fromEntries([...channels].map(([key, slice]) => [key, slice.data])),
 });
 
-// Revalidation
-
-const isFresh = (key: CacheKey): boolean => {
-  const slice = sliceFor(key);
-  if (!slice || slice.fetchedAt === 0 || slice.partial) return false;
-  if (dirtyKeys.has(key)) return false;
-  return Date.now() - slice.fetchedAt < ttlFor(key);
-};
+// Fetching (one-shot per session slice)
 
 const fetchSlice = async (key: CacheKey): Promise<void> => {
   if (key === 'companies') {
     companies.data = await triggerServerCallback<Company[]>('beaconapp:getcompanies');
-    companies.fetchedAt = Date.now();
-    companies.partial = false;
+    companies.loaded = true;
     debuglog(`[beaconapp:cache] companies fetched (${companies.data.length})`);
-    // A revalidated set can differ from what the UI already painted, so the
-    // change is announced like any other (the bridge turns it into a hydrate
-    // push while the app is open; while closed it is recoverable on mount).
     bump({ kind: 'slice', key });
     return;
   }
 
   if (key === 'announcements') {
     announcements.data = await triggerServerCallback<Announcement[]>('beaconapp:getannouncements');
-    announcements.fetchedAt = Date.now();
-    announcements.partial = false;
+    announcements.loaded = true;
     debuglog(`[beaconapp:cache] announcements fetched (${announcements.data.length})`);
     bump({ kind: 'slice', key });
     return;
@@ -207,21 +189,20 @@ const fetchSlice = async (key: CacheKey): Promise<void> => {
     companyId: companyId || undefined,
   });
 
-  channels.set(key, { data: rows, fetchedAt: Date.now(), partial: false });
+  channels.set(key, { data: rows, loaded: true });
   debuglog(`[beaconapp:cache] channels fetched (${key}, ${rows.length})`);
   bump({ kind: 'slice', key });
 };
 
-const refresh = (key: CacheKey, force: boolean): Promise<void> => {
+/** At most one in-flight fetch per slice; repeat callers share the round-trip. */
+const fetch = (key: CacheKey): Promise<void> => {
   const running = inflight.get(key);
-  if (running) return running; // single-flight: share the round-trip
-  if (!force && isFresh(key)) return Promise.resolve();
+  if (running) return running;
 
   const task = fetchSlice(key)
     .catch((err) => {
-      // Keep whatever we already hold; the next mount or TTL tick retries.
-      dirtyKeys.add(key);
-      debuglog(`[beaconapp:cache] refresh failed (${key})`, err);
+      // Keep whatever we hold (possibly nothing); the next mount retries.
+      debuglog(`[beaconapp:cache] fetch failed (${key})`, err);
     })
     .finally(() => {
       inflight.delete(key);
@@ -231,49 +212,31 @@ const refresh = (key: CacheKey, force: boolean): Promise<void> => {
   return task;
 };
 
-/** Drops the cached list for a slice without touching the others. */
-export const invalidate = (...keys: CacheKey[]): void => {
-  for (const key of keys) {
-    dirtyKeys.add(key);
-    debuglog(`[beaconapp:cache] invalidated (${key})`);
-  }
+export const fetchSliceIfMissing = async (...keys: CacheKey[]): Promise<void> => {
+  await Promise.all(
+    keys.map(async (key) => {
+      if (!sliceFor(key)?.loaded) {
+        await fetch(key);
+      }
+    }),
+  );
 };
-
-export const invalidateChannels = (scope: ChannelScope, companyId?: string): void =>
-  invalidate(channelSliceKey(scope, companyId));
-
-/**
- * Revalidate slices that are missing, partial or past their TTL. Safe to call
- * on every mount / navigation / timer tick.
- */
-export const ensureFresh = async (...keys: CacheKey[]): Promise<void> => {
-  await Promise.all(keys.map((key) => refresh(key, false)));
-};
-
-/**
- * Revalidate regardless of TTL — used right after a local mutation that the
- * broadcast cannot fully describe.
- */
-export const ensureFreshNow = async (...keys: CacheKey[]): Promise<void> => {
-  await Promise.all(keys.map((key) => refresh(key, true)));
-};
-
-/** True when the slice is present and still within its TTL. */
-export const isCached = (key: CacheKey): boolean => isFresh(key);
 
 /** True once the slice has been fetched from the server at least once. */
-export const hasData = (key: CacheKey): boolean => (sliceFor(key)?.fetchedAt ?? 0) > 0;
+export const hasData = (key: CacheKey): boolean => sliceFor(key)?.loaded ?? false;
 
-/** Reset for a new session (resource restart, player unload, dev tooling). */
+/**
+ * Cache reset for a new session: character swap, job change, resource
+ * maintenance, dev tooling. Everything is dropped and the next mount pulls it
+ * again; the running UI (if any) gets a full hydrate from the empty state and
+ * refetches on its next navigation or app open.
+ */
 export const clear = (): void => {
   companies.data = [];
-  companies.fetchedAt = 0;
-  companies.partial = false;
+  companies.loaded = false;
   announcements.data = [];
-  announcements.fetchedAt = 0;
-  announcements.partial = false;
+  announcements.loaded = false;
   channels.clear();
-  dirtyKeys.clear();
   inflight.clear();
   employee = { enabled: false, companyId: null };
   // The counter is only ever compared against a snapshot the UI already holds,
@@ -286,13 +249,8 @@ export const clear = (): void => {
 export const dump = () => ({
   revision,
   employee,
-  companies: { count: companies.data.length, fetchedAt: companies.fetchedAt, partial: companies.partial },
-  announcements: {
-    count: announcements.data.length,
-    fetchedAt: announcements.fetchedAt,
-    partial: announcements.partial,
-  },
-  channels: [...channels].map(([key, slice]) => ({ key, count: slice.data.length, fetchedAt: slice.fetchedAt })),
+  companies: { count: companies.data.length, loaded: companies.loaded },
+  announcements: { count: announcements.data.length, loaded: announcements.loaded },
+  channels: [...channels].map(([key, slice]) => ({ key, count: slice.data.length, loaded: slice.loaded })),
   inflight: [...inflight.keys()],
-  dirty: [...dirtyKeys],
 });
