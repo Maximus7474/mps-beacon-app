@@ -3,12 +3,6 @@ if (not IsFrameworkStarted("ox")) then return end
 local chunk = LoadResourceFile("ox_core", "lib/init.lua")
 load(chunk, "@@ox_core/lib/init.lua", "t")()
 
-local counter = 0
-while not Ox and counter < 10 do
-    Wait(500)
-    counter += 1
-end
-
 if (not Ox) then
     error(
     '\n > Unable to access ox_core exported functions, please check why this is occuring.\n > This script WILL NOT work until you resolve this.')
