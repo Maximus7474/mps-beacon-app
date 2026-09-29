@@ -1,5 +1,5 @@
 import { getSeedMessages } from '@common/data/channelMessages';
-import type { GetMessagesRequest, Message, NewMessagePush, SendMessageResponse } from '@common/types';
+import type { Channel, GetMessagesRequest, Message, NewMessagePush, SendMessageResponse } from '@common/types';
 import { CaretLeftIcon, PaperPlaneTiltIcon, PhoneIcon } from '@phosphor-icons/react/dist/ssr';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { BrandMark } from '~/components/BrandMark';
