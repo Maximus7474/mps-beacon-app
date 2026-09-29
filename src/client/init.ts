@@ -51,8 +51,8 @@ const appConfig: AppConfig = {
 
   ui: url.includes('http') ? url : `${GetCurrentResourceName()}/${url}`,
   icon: url.includes('http')
-    ? `${url}/public/icon.png`
-    : `https://cfx-nui-${GetCurrentResourceName()}/dist/web/icon.png`,
+    ? `${url}/public/icon.webp`
+    : `https://cfx-nui-${GetCurrentResourceName()}/dist/web/icon.webp`,
 
   fixBlur: true,
 
