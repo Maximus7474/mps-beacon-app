@@ -1,6 +1,7 @@
 {
   "Identifier": "mps-beacon-app",
   "DefaultApp": true,
+  "VersionCheck": true,
   "AppName": "Beacon",
   "AppDescription": "All compagnies in San Andreas",
   "AppDeveloper": "S.A. State",

@@ -30,6 +30,7 @@ import { LoadJsonFile } from '../common/utils';
 import * as db from './db';
 import { getPlayerName, getPlayerPhoneNumber, hasJob } from './players';
 import { RegisterServerCallback } from './utils/callbacks';
+import { VersionCheck } from './utils/version_check';
 
 // Static data & runtime state
 
@@ -581,4 +582,6 @@ setImmediate(async () => {
   } catch (err) {
     console.error('[beaconapp] database connection failed', err);
   }
+
+  VersionCheck();
 });
