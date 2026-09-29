@@ -1,6 +1,8 @@
-# React Typescript LB Phone app boiler plate
+# Beacon (lb-phone Addon App)
 
-Pure typescript boilerplate to create addon apps for lb phone
+Beacon is an open-source custom app for lb-phone on FiveM. It provides a localized business directory, real-time announcements, direct customer messaging, and in-app management tools for player-owned businesses.
+
+<img src="./.github/assets/beacon-app-banner.webp" />
 
 ---
 
