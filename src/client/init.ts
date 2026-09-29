@@ -43,10 +43,11 @@ const appConfig: AppConfig = {
   size: 59812,
 
   images: [
-    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/1.png`,
-    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/2.png`,
-    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/3.png`,
-    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/4.png`,
+    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/screenshots/screenshot-light-1.png`,
+    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/screenshots/screenshot-light-2.png`,
+    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/screenshots/screenshot-light-3.png`,
+    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/screenshots/screenshot-light-4.png`,
+    `https://cfx-nui-${GetCurrentResourceName()}/dist/web/screenshots/screenshot-light-5.png`,
   ],
 
   ui: url.includes('http') ? url : `${GetCurrentResourceName()}/${url}`,
