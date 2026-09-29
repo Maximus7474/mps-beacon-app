@@ -197,10 +197,7 @@ export const initBeaconSync = (): void => {
 
     void applyNewMessage(push);
 
-    // The open thread (if any) appends from this push directly instead of
-    // refetching; pages that are not showing it drop it harmlessly. Sent even
-    // when the cache had nothing to patch, so the thread never misses a row.
-    push(ACTION.newMessage, push, cache.getRevision());
+    pushToNui({ action: ACTION.newMessage, data: push });
   });
 
   onNet('beaconapp:client:removeannouncement', (data: { id?: string }) => {
