@@ -12,7 +12,7 @@ type BrandMarkProps = {
   className?: string;
 };
 
-const PHOSPHOR_ICONS = PhosphorIcons as unknown as Record<string, PhosphorIconType>;
+export const PHOSPHOR_ICONS = PhosphorIcons as unknown as Record<string, PhosphorIconType>;
 
 export const BrandMark = ({ image, icon, iconBg, className }: BrandMarkProps) => {
   if (image) {
@@ -23,13 +23,11 @@ export const BrandMark = ({ image, icon, iconBg, className }: BrandMarkProps) =>
     );
   }
 
-  // Look the icon up in the Phosphor namespace: known names resolve to a
-  // component, while emojis (and anything else) fall through to plain text.
   const Icon = icon ? PHOSPHOR_ICONS[icon] : undefined;
 
   return (
     <div className={className} style={iconBg ? { background: iconBg } : undefined}>
-      {Icon ? <Icon size='1em' color='#fff' /> : icon}
+      {Icon ? <Icon size='1em' color='#fff' /> : (icon ?? '?')}
     </div>
   );
 };
