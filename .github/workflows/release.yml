@@ -37,19 +37,8 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Bump package version
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
       - name: Run build
         run: bun run build
-
-      - name: Update repository
-        run: |
-          git add .
-          git commit -am '${{ github.ref_name }}'
-          git push
 
       - name: Bundle files
         run: |
