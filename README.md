@@ -2,6 +2,12 @@
 
 Beacon is an open-source custom app for lb-phone on FiveM. It provides a localized business directory, real-time announcements, direct customer messaging, and in-app management tools for player-owned businesses.
 
+<p align="center">
+  <a href="https://github.com/Maximus7474/mps-beacon-app/releases/latest/download/mps-beacon-app.zip">
+    <img src="https://img.shields.io/badge/Download-Resource-blue?style=for-the-badge" alt="Download Resource" />
+  </a>
+</p>
+
 <img src="./.github/assets/beacon-app-banner.webp" />
 
 ---
