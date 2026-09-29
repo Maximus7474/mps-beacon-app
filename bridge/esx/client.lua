@@ -39,3 +39,5 @@ if ESX.PlayerLoaded then
 end
 
 exports('getJobData', getJobData)
+
+FrameworkLoaded = true

@@ -67,3 +67,5 @@ exports('hasJob', hasJob)
 exports('hasGrade', hasGrade)
 exports('getName', getName)
 exports('getEmployees', getEmployees)
+
+FrameworkLoaded = true

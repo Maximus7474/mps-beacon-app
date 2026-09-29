@@ -21,6 +21,9 @@ function IsFrameworkStarted(framework)
         local state = GetResourceState('qbx-core')
         return state == "starting" or state == "started"
     elseif (framework == "standalone") then
+        -- avoids standalone being loaded on top of another framework
+        Wait(2000)
+        if FrameworkLoaded then return false end
         return true
     end
 

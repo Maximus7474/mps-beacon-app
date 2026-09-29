@@ -47,3 +47,5 @@ if Ox.GetPlayer()?.charId then
 end
 
 exports('getJobData', getJobData)
+
+FrameworkLoaded = true

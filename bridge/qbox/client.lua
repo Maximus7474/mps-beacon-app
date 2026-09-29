@@ -29,7 +29,7 @@ local function init()
 
     TriggerEvent('beaconapp:client:ready')
     TriggerEvent('beaconapp:groupupdate', getJobData())
-    print('ox_core bridge is ready')
+    print('qbx_core bridge is ready')
 end
 
 RegisterNetEvent("QBCore:Client:SetDuty", function(onDuty)
@@ -48,3 +48,5 @@ else
 end
 
 exports('getJobData', getJobData)
+
+FrameworkLoaded = true
