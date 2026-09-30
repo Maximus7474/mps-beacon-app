@@ -40,6 +40,8 @@ createBuilder(
     },
   ],
   async (outfiles) => {
+    if (web && !watch) await exec("cd ./web && vite build");
+
     const files = await getFiles('dist/web', 'static');
     await createFxmanifest({
       client_scripts: [outfiles.client, 'bridge/utils.lua', 'bridge/**/client.lua'],
@@ -54,8 +56,6 @@ createBuilder(
         node_version: '22'
       },
     });
-
-    if (web && !watch) await exec("cd ./web && vite build");
   }
 );
 
