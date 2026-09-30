@@ -7,10 +7,11 @@
 	"type": "module",
 	"scripts": {
 		"web:dev": "cd web && vite dev",
+		"format": "bun biome format --write",
+		"lint": "bun biome lint --write",
 		"build": "bun scripts/build.js",
 		"watch": "bun scripts/build.js --watch",
-		"format": "bun biome format --write",
-		"lint": "bun biome lint --write"
+		"bump-version": "node scripts/bumpversion.js"
 	},
 	"keywords": [
 		"fivem"
