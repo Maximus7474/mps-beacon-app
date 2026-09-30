@@ -1,43 +1,43 @@
 {
-	"name": "mps-beacon-app",
-	"author": "Maximus7474",
-	"version": "1.0.0",
-	"license": "",
-	"description": "",
-	"type": "module",
-	"scripts": {
-		"web:dev": "cd web && vite dev",
-		"format": "bun biome format --write",
-		"lint": "bun biome lint --write",
-		"build": "bun scripts/build.js",
-		"watch": "bun scripts/build.js --watch",
-		"bump-version": "node scripts/bumpversion.js"
-	},
-	"keywords": [
-		"fivem"
-	],
-	"devDependencies": {
-		"@citizenfx/client": "latest",
-		"@citizenfx/server": "latest",
-		"@overextended/fx-utils": "^0.0.4",
-		"@jgoz/esbuild-plugin-typecheck": "^4.0.3",
-		"@types/node": "^22.15.21",
-		"@types/react": "^19.1.5",
-		"@types/react-dom": "^19.1.5",
-		"@types/react-router-dom": "^5.3.3",
-		"@vitejs/plugin-react": "^4.5.0",
-		"esbuild": "^0.25.4",
-		"sass": "^1.102.0",
-		"typescript": "^5.8.3",
-		"vite": "^6.3.5"
-	},
-	"dependencies": {
-		"@biomejs/biome": "^1.9.4",
-		"@overextended/oxmysql": "^1.4.3",
-		"@nativewrappers/fivem": "latest",
-		"@phosphor-icons/react": "^2.1.10",
-		"react": "^19.1.0",
-		"react-dom": "^19.1.0",
-		"react-router-dom": "^7.18.1"
-	}
+  "name": "mps-beacon-app",
+  "author": "Maximus7474",
+  "version": "1.1.0",
+  "license": "",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "web:dev": "cd web && vite dev",
+    "format": "bun biome format --write",
+    "lint": "bun biome lint --write",
+    "build": "bun scripts/build.js",
+    "watch": "bun scripts/build.js --watch",
+    "bump-version": "node scripts/bumpversion.js"
+  },
+  "keywords": [
+    "fivem"
+  ],
+  "devDependencies": {
+    "@citizenfx/client": "latest",
+    "@citizenfx/server": "latest",
+    "@overextended/fx-utils": "^0.0.4",
+    "@jgoz/esbuild-plugin-typecheck": "^4.0.3",
+    "@types/node": "^22.15.21",
+    "@types/react": "^19.1.5",
+    "@types/react-dom": "^19.1.5",
+    "@types/react-router-dom": "^5.3.3",
+    "@vitejs/plugin-react": "^4.5.0",
+    "esbuild": "^0.25.4",
+    "sass": "^1.102.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  },
+  "dependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@overextended/oxmysql": "^1.4.3",
+    "@nativewrappers/fivem": "latest",
+    "@phosphor-icons/react": "^2.1.10",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router-dom": "^7.18.1"
+  }
 }
